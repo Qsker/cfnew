@@ -1,4 +1,4 @@
-    const pageHtml = `<!DOCTYPE html>
+                const pageHtml = `<!DOCTYPE html>
     <html lang="${langAttr}" dir="${isFarsi ? 'rtl' : 'ltr'}">
     <head>
         <meta charset="UTF-8">
@@ -1455,7 +1455,12 @@
                     const translations = {
                         zh: {
                             kvDisabled: '⚠️ KV存储未启用或未配置',
-                            kvNotConfigured: 'KV存储未配置，无法使用配置管理功能。\\n\\n请在Cloudflare Workers中:\\n1. 创建KV命名空间\\n2. 绑定环境变量 C\\n3. 重新部署代码',
+                            kvNotConfigured: 'KV存储未配置，无法使用配置管理功能。
+
+请在Cloudflare Workers中:
+1. 创建KV命名空间
+2. 绑定环境变量 C
+3. 重新部署代码',
                             kvNotEnabled: 'KV存储未配置',
                             kvEnabled: '✅ KV存储已启用，可以使用配置管理功能',
                             kvCheckFailed: '⚠️ KV存储检测失败',
@@ -1465,7 +1470,12 @@
                         },
                         fa: {
                             kvDisabled: '⚠️ ذخیره‌سازی KV فعال نیست یا پیکربندی نشده است',
-                            kvNotConfigured: 'ذخیره‌سازی KV پیکربندی نشده است، نمی‌توانید از عملکرد مدیریت تنظیمات استفاده کنید.\\n\\nلطفا در Cloudflare Workers:\\n1. فضای نام KV ایجاد کنید\\n2. متغیر محیطی C را پیوند دهید\\n3. کد را دوباره مستقر کنید',
+                            kvNotConfigured: 'ذخیره‌سازی KV پیکربندی نشده است، نمی‌توانید از عملکرد مدیریت تنظیمات استفاده کنید.
+
+لطفا در Cloudflare Workers:
+1. فضای نام KV ایجاد کنید
+2. متغیر محیطی C را پیوند دهید
+3. کد را دوباره مستقر کنید',
                             kvNotEnabled: 'ذخیره‌سازی KV پیکربندی نشده است',
                             kvEnabled: '✅ ذخیره‌سازی KV فعال است، می‌توانید از مدیریت تنظیمات استفاده کنید',
                             kvCheckFailed: '⚠️ بررسی ذخیره‌سازی KV ناموفق',
@@ -2164,7 +2174,8 @@
 
                                 // 先按行分割，再在每行内按逗号分割，兼容“多行 + 逗号分隔”两种格式
                                 const perUrlItems = text
-                                    .split(/\\r?\\n/)
+                                    .split(/?
+/)
                                     .map(l => l.trim())
                                     .filter(l => l && !l.startsWith('#'))
                                     .flatMap(l => l.split(',').map(p => p.trim()).filter(p => p));
@@ -2666,7 +2677,7 @@
                             signal.addEventListener('abort', () => controller.abort());
                         }
 
-                        const cleanHost = host.replace(/^\\[|\\]$/g, '');
+                        const cleanHost = host.replace(/^\[|\]$/g, '');
                         const hexIP = ipToHex(cleanHost);
                         const testDomain = hexIP ? (hexIP + '.nip.lfree.org') : (cleanHost + '.nip.lfree.org');
                         testUrl = 'https://' + testDomain + ':' + port + '/';

@@ -5262,8 +5262,7 @@
                     const data = await response.json();
 
                     if (data.detectedRegion) {
-                        cpToast(t.apiTestResult + data.detectedRegion + '
-' + t.apiTestTime + data.timestamp, 'info', { duration: 5000 });
+                        cpToast(t.apiTestResult + data.detectedRegion + '\\n' + t.apiTestTime + data.timestamp, 'info', { duration: 5000 });
                     } else {
                         cpToast(t.apiTestFailed + (data.error || t.unknownError), 'error', { duration: 4500 });
                     }
@@ -5443,14 +5442,12 @@
                         }
                     }
 
-                    let configText = '当前配置:
-';
+                    let configText = '当前配置:\\n';
                     if (Object.keys(displayConfig).length === 0) {
                         configText += '(暂无配置)';
                     } else {
                         for (const [key, value] of Object.entries(displayConfig)) {
-                            configText += key + ': ' + (value || '(未设置)') + '
-';
+                            configText += key + ': ' + (value || '(未设置)') + '\\n';
                         }
                     }
 

@@ -1,0 +1,4 @@
+.wrangler/
+pages-deploy/.wrangler/
+node_modules/
+*.bak.*

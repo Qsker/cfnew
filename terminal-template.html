@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+    <html lang="${langAttr}" dir="${isFarsi ? 'rtl' : 'ltr'}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${t.title}</title>
+        <style>
+            :root {
+                --bg: #f5f4ed;
+                --surface: #faf9f5;
+                --surface-strong: #ffffff;
+                --fg: #141413;
+                --muted: #5e5d59;
+                --muted-2: #87867f;
+                --border: #e8e6dc;
+                --border-soft: #f0eee6;
+                --accent: #c96442;
+                --accent-soft: #d97757;
+                --success: #4f6f52;
+                --danger: #b53333;
+                --ring: #d1cfc5;
+                --font-display: "Iowan Old Style", "Charter", Georgia, serif;
+                --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+                --font-mono: "SF Mono", "Fira Code", "Courier New", monospace;
+            }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            html, body { min-height: 100%; }
+            body {
+                font-family: var(--font-body);
+                background:
+                    radial-gradient(circle at 14% 12%, rgba(201, 100, 66, 0.08), transparent 28rem),
+                    linear-gradient(180deg, #faf9f5 0%, var(--bg) 48%, #ebe8dd 100%);
+                color: var(--fg);
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: clamp(24px, 4vw, 56px);
+            }
+            body::before {
+                content: "Workspace";
+                position: fixed;
+                inset-block-start: clamp(28px, 5vw, 64px);
+                inset-inline-start: clamp(24px, 5vw, 76px);
+                color: rgba(20, 20, 19, 0.05);
+                font-family: var(--font-display);
+                font-size: clamp(72px, 14vw, 220px);
+                line-height: 0.8;
+                pointer-events: none;
+                z-index: 0;
+            }
+            .terminal {
+                width: min(94vw, 860px);
+                background: color-mix(in oklab, var(--surface) 94%, white);
+                border: 1px solid var(--border);
+                border-radius: 28px;
+                overflow: hidden;
+                position: relative;
+                z-index: 1;
+                box-shadow:
+                    rgba(0, 0, 0, 0.05) 0 24px 70px,
+                    0 0 0 1px rgba(209, 207, 197, 0.5);
+            }
+            .terminal::before {
+                content: "";
+                position: absolute;
+                inset-block-start: 0;
+                inset-inline: 0;
+                block-size: 5px;
+                background: var(--accent);
+            }
+            .terminal-header {
+                background: rgba(232, 230, 220, 0.58);
+                padding: 18px 22px;
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                gap: 14px;
+            }
+            .terminal-buttons { display: flex; gap: 7px; }
+            .terminal-button {
+                width: 11px;
+                height: 11px;
+                border-radius: 50%;
+                background: var(--danger);
+                box-shadow: 0 0 0 1px rgba(20, 20, 19, 0.08);
+            }
+            .terminal-button:nth-child(2) { background: #d29922; }
+            .terminal-button:nth-child(3) { background: var(--success); }
+            .terminal-title {
+                color: var(--muted);
+                font-size: 12px;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                font-family: var(--font-mono);
+            }
+            .terminal-body {
+                padding: clamp(24px, 5vw, 48px);
+                font-family: var(--font-mono);
+                font-size: clamp(13px, 1.8vw, 15px);
+                line-height: 1.75;
+                max-height: min(62vh, 620px);
+                overflow: auto;
+            }
+            .terminal-line {
+                margin-bottom: 13px;
+                display: flex;
+                align-items: baseline;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .terminal-line:first-child {
+                font-family: var(--font-display);
+                font-size: clamp(26px, 4.8vw, 46px);
+                line-height: 1.1;
+                margin-bottom: 18px;
+            }
+            .terminal-line:first-child .terminal-prompt { display: none; }
+            .terminal-line:first-child .terminal-output { color: var(--fg); }
+            .terminal-prompt {
+                color: var(--accent);
+                font-weight: 700;
+                flex: 0 0 auto;
+            }
+            .terminal-output {
+                color: var(--muted);
+                margin: 4px 0;
+                overflow-wrap: anywhere;
+            }
+            .terminal-error  { color: var(--danger); margin: 4px 0; }
+            .terminal-success{ color: var(--success); margin: 4px 0; }
+            .terminal-input {
+                background: var(--surface-strong);
+                border: 1px solid var(--border);
+                color: var(--fg);
+                font-family: inherit;
+                font-size: 14px;
+                padding: 13px 14px;
+                border-radius: 12px;
+                flex: 1;
+                min-width: min(100%, 260px);
+                outline: none;
+                box-shadow: inset 0 0 0 1px rgba(240, 238, 230, 0.9);
+            }
+            .terminal-input:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px rgba(201, 100, 66, 0.14);
+            }
+            .terminal-input::placeholder { color: var(--muted-2); }
+            .lang-bar {
+                position: fixed;
+                inset-block-start: 18px;
+                inset-inline-end: 18px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                z-index: 100;
+            }
+            #languageSelector {
+                appearance: none;
+                background: rgba(250, 249, 245, 0.9);
+                border: 1px solid var(--border);
+                color: var(--fg);
+                padding: 9px 34px 9px 12px;
+                font-size: 13px;
+                border-radius: 999px;
+                cursor: pointer;
+                box-shadow: 0 0 0 1px rgba(209, 207, 197, 0.35);
+            }
+            #languageSelector option { background: var(--surface); color: var(--fg); }
+            html[dir="rtl"] .terminal-line { direction: rtl; }
+            html[dir="rtl"] .terminal-input { direction: ltr; text-align: start; }
+            @media (max-width: 620px) {
+                body { align-items: stretch; padding: 72px 14px 18px; }
+                body::before { display: none; }
+                .terminal { border-radius: 22px; }
+                .terminal-header { padding: 16px 18px; }
+                .terminal-body { max-height: none; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="lang-bar">
+            <select id="languageSelector" onchange="changeLanguage(this.value)">
+                <option value="zh" ${!isFarsi ? 'selected' : ''}>🇨🇳 中文</option>
+                <option value="fa" ${isFarsi ? 'selected' : ''}>🇮🇷 فارسی</option>
+            </select>
+        </div>
+        <div class="terminal">
+            <div class="terminal-header">
+                <div class="terminal-buttons">
+                    <div class="terminal-button"></div>
+                    <div class="terminal-button"></div>
+                    <div class="terminal-button"></div>
+                </div>
+                    <div class="terminal-title">${t.terminal}</div>
+            </div>
+            <div class="terminal-body" id="terminalBody">
+                <div class="terminal-line">
+                    <span class="terminal-prompt">root:~$</span>
+                        <span class="terminal-output">${t.congratulations}</span>
+                </div>
+                <div class="terminal-line">
+                    <span class="terminal-prompt">root:~$</span>
+                        <span class="terminal-output">${cp && cp.trim() ? t.enterD : t.enterU}</span>
+                </div>
+                <div class="terminal-line">
+                    <span class="terminal-prompt">root:~$</span>
+                        <span class="terminal-output">${t.command}${cp && cp.trim() ? t.path : t.uuid}]</span>
+                </div>
+                <div class="terminal-line">
+                    <span class="terminal-prompt">root:~$</span>
+                        <input type="text" class="terminal-input" id="uuidInput" placeholder="${cp && cp.trim() ? t.inputD : t.inputU}" autofocus>
+                    <span class="terminal-cursor"></span>
+                </div>
+            </div>
+        </div>
+        <script>
+            // 页面特效图形化开关 (localStorage 持久化)
+            window.cpApplyFx = function() {
+                var off = localStorage.getItem('cp-fx-off') === '1';
+                document.body.classList.toggle('fx-off', off);
+                var lbl = document.getElementById('cpFxLabel');
+                if (lbl) lbl.textContent = off ? 'FX: OFF' : 'FX: ON';
+                if (off) {
+                    var rain = document.getElementById('matrixCodeRain');
+                    if (rain) rain.innerHTML = '';
+                } else if (typeof createMatrixRain === 'function') {
+                    var r = document.getElementById('matrixCodeRain');
+                    if (r && !r.firstChild) createMatrixRain();
+                }
+            };
+            window.cpToggleFx = function() {
+                var off = localStorage.getItem('cp-fx-off') === '1';
+                localStorage.setItem('cp-fx-off', off ? '0' : '1');
+                window.cpApplyFx();
+            };
+            (function() {
+                if (localStorage.getItem('cp-fx-off') === '1') {
+                    document.documentElement.classList.add('fx-off-preload');
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.body.classList.add('fx-off');
+                    });
+                }
+            })();
+
+            function createMatrixRain() {
+                if (document.body && document.body.classList.contains('fx-off')) return;
+                const matrixContainer = document.getElementById('matrixCodeRain');
+                if (!matrixContainer) return;
+                const cyberChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ$%#@!?<>+=ABCDEF';
+                const palette = ['#00f0ff', '#ff2bd6', '#a347ff', '#00ff9d'];
+                const columns = Math.floor(window.innerWidth / 20);
+
+                for (let i = 0; i < columns; i++) {
+                    const column = document.createElement('div');
+                    column.className = 'matrix-column';
+                    column.style.left = (i * 20) + 'px';
+                    column.style.animationDelay = (-Math.random() * 15) + 's';
+                    column.style.animationDuration = (Math.random() * 14 + 8) + 's';
+                    column.style.fontSize = (Math.random() * 4 + 12) + 'px';
+                    column.style.opacity = (Math.random() * 0.7 + 0.3).toFixed(2);
+
+                    let text = '';
+                    const charCount = Math.floor(Math.random() * 30 + 18);
+                    for (let j = 0; j < charCount; j++) {
+                        const char = cyberChars[Math.floor(Math.random() * cyberChars.length)];
+                        const useAccent = Math.random() > 0.85;
+                        const color = useAccent ? palette[Math.floor(Math.random() * palette.length)] : '';
+                        text += color
+                            ? ('<span style="color:' + color + ';text-shadow:0 0 8px ' + color + ';">' + char + '</span><br>')
+                            : ('<span>' + char + '</span><br>');
+                    }
+                    column.innerHTML = text;
+                    matrixContainer.appendChild(column);
+                }
+
+                setInterval(function() {
+                    const cols = matrixContainer.querySelectorAll('.matrix-column');
+                    cols.forEach(function(column) {
+                        if (Math.random() > 0.94) {
+                            const chars = column.querySelectorAll('span');
+                            if (chars.length > 0) {
+                                const target = chars[Math.floor(Math.random() * chars.length)];
+                                const prev = target.style.color;
+                                target.style.color = '#ffffff';
+                                target.style.textShadow = '0 0 10px #ffffff, 0 0 18px #00f0ff';
+                                setTimeout(function() {
+                                    target.style.color = prev;
+                                    target.style.textShadow = '';
+                                }, 200);
+                            }
+                        }
+                    });
+                }, 110);
+            }
+
+            function isValidUUID(uuid) {
+                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+                return uuidRegex.test(uuid);
+            }
+
+            function addTerminalLine(content, type = 'output') {
+                const terminalBody = document.getElementById('terminalBody');
+                const line = document.createElement('div');
+                line.className = 'terminal-line';
+
+                const prompt = document.createElement('span');
+                prompt.className = 'terminal-prompt';
+                prompt.textContent = 'root:~$';
+
+                const output = document.createElement('span');
+                output.className = 'terminal-' + type;
+                output.textContent = content;
+
+                line.appendChild(prompt);
+                line.appendChild(output);
+                terminalBody.appendChild(line);
+
+                terminalBody.scrollTop = terminalBody.scrollHeight;
+            }
+
+            function handleUUIDInput() {
+                const input = document.getElementById('uuidInput');
+                const inputValue = input.value.trim();
+                const cp = '${ cp }';
+
+                if (inputValue) {
+                    addTerminalLine(atob('Y29ubmVjdCA=') + inputValue, 'output');
+                        const translations = {
+                            zh: {
+                                connecting: '正在连接...',
+                                invading: '正在入侵...',
+                                success: '连接成功！返回结果...',
+                                error: '错误: 无效的UUID格式',
+                                reenter: '请重新输入有效的UUID'
+                            },
+                            fa: {
+                                connecting: 'در حال اتصال...',
+                                invading: 'در حال نفوذ...',
+                                success: 'اتصال موفق! در حال بازگشت نتیجه...',
+                                error: 'خطا: فرمت UUID نامعتبر',
+                                reenter: 'لطفا UUID معتبر را دوباره وارد کنید'
+                            }
+                        };
+                        const browserLang = navigator.language || navigator.userLanguage || '';
+                        const isFarsi = browserLang.includes('fa') || browserLang.includes('fa-IR');
+                        const t = translations[isFarsi ? 'fa' : 'zh'];
+
+                    if (cp) {
+                        const cleanInput = inputValue.startsWith('/') ? inputValue : '/' + inputValue;
+                            addTerminalLine(t.connecting, 'output');
+                        setTimeout(() => {
+                                addTerminalLine(t.success, 'success');
+                            setTimeout(() => {
+                                window.location.href = cleanInput;
+                            }, 1000);
+                        }, 500);
+                    } else {
+                        if (isValidUUID(inputValue)) {
+                            addTerminalLine(t.invading, 'output');
+                        setTimeout(() => {
+                                addTerminalLine(t.success, 'success');
+                            setTimeout(() => {
+                                    window.location.href = '/' + inputValue;
+                            }, 1000);
+                        }, 500);
+                    } else {
+                            addTerminalLine(t.error, 'error');
+                            addTerminalLine(t.reenter, 'output');
+                        }
+                    }
+
+                    input.value = '';
+                }
+            }
+
+            function changeLanguage(lang) {
+                localStorage.setItem('preferredLanguage', lang);
+                // 设置Cookie（有效期1年）
+                const expiryDate = new Date();
+                expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                document.cookie = 'preferredLanguage=' + lang + '; path=/; expires=' + expiryDate.toUTCString() + '; SameSite=Lax';
+                // 刷新页面，不使用URL参数
+                window.location.reload();
+            }
+
+            // 页面加载时检查 localStorage 和 Cookie，并清理URL参数
+            window.addEventListener('DOMContentLoaded', function() {
+                function getCookie(name) {
+                    const value = '; ' + document.cookie;
+                    const parts = value.split('; ' + name + '=');
+                    if (parts.length === 2) return parts.pop().split(';').shift();
+                    return null;
+                }
+
+                const savedLang = localStorage.getItem('preferredLanguage') || getCookie('preferredLanguage');
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlLang = urlParams.get('lang');
+
+                // 如果URL中有语言参数，移除它并设置Cookie
+                if (urlLang) {
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.delete('lang');
+                    const newUrl = currentUrl.toString();
+
+                    // 设置Cookie
+                    const expiryDate = new Date();
+                    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                    document.cookie = 'preferredLanguage=' + urlLang + '; path=/; expires=' + expiryDate.toUTCString() + '; SameSite=Lax';
+                    localStorage.setItem('preferredLanguage', urlLang);
+
+                    // 使用history API移除URL参数，不刷新页面
+                    window.history.replaceState({}, '', newUrl);
+                } else if (savedLang) {
+                    // 如果localStorage中有但Cookie中没有，同步到Cookie
+                    const expiryDate = new Date();
+                    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                    document.cookie = 'preferredLanguage=' + savedLang + '; path=/; expires=' + expiryDate.toUTCString() + '; SameSite=Lax';
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', function() {
+                try { createMatrixRain(); } catch (e) {}
+                const input = document.getElementById('uuidInput');
+                if (input) {
+                    input.focus();
+                    input.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            handleUUIDInput();
+                        }
+                    });
+                }
+            });
+        </script>
+    </body>
+    </html>

@@ -1,0 +1,2721 @@
+    const pageHtml = `<!DOCTYPE html>
+    <html lang="${langAttr}" dir="${isFarsi ? 'rtl' : 'ltr'}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${t.title}</title>
+        <style>
+            :root {
+                --bg: #f5f4ed;
+                --surface: #faf9f5;
+                --surface-strong: #ffffff;
+                --sand: #e8e6dc;
+                --fg: #141413;
+                --muted: #5e5d59;
+                --muted-2: #87867f;
+                --border: #e8e6dc;
+                --border-soft: #f0eee6;
+                --accent: #c96442;
+                --accent2: #d97757;
+                --green: #4f6f52;
+                --red: #b53333;
+                --amber: #9f7130;
+                --dark: #30302e;
+                --ring: #d1cfc5;
+                --font-display: "Iowan Old Style", "Charter", Georgia, serif;
+                --font-body: "Iowan Old Style", "Charter", Georgia, serif;
+                --font-mono: "Iowan Old Style", "Charter", Georgia, serif;
+            }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            html, body { min-height: 100%; }
+            body {
+                font-family: var(--font-body);
+                background:
+                    radial-gradient(circle at 8% -12%, rgba(201, 100, 66, 0.12), transparent 32rem),
+                    linear-gradient(180deg, #faf9f5 0%, var(--bg) 42%, #ebe8dd 100%);
+                color: var(--fg);
+                min-height: 100vh;
+                overflow-x: hidden;
+                padding-bottom: 104px;
+            }
+            body::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                background-image:
+                    linear-gradient(rgba(20,20,19,0.035) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(20,20,19,0.025) 1px, transparent 1px);
+                background-size: 36px 36px;
+                mask-image: linear-gradient(to bottom, black, transparent 72%);
+            }
+            a {
+                color: var(--accent);
+                text-decoration: none;
+                text-underline-offset: 3px;
+            }
+            a:hover { text-decoration: underline; }
+            .container {
+                width: min(1180px, calc(100vw - 32px));
+                margin: 0 auto;
+                padding: clamp(40px, 7vw, 88px) 0 48px;
+                position: relative;
+                z-index: 1;
+            }
+            .header {
+                text-align: start;
+                max-width: 760px;
+                margin-bottom: clamp(28px, 5vw, 54px);
+                padding-inline-end: 132px;
+            }
+            .header::before {
+                content: "Workspace Console";
+                display: inline-block;
+                margin-bottom: 14px;
+                color: var(--accent);
+                font-size: 12px;
+                line-height: 1.4;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                font-weight: 600;
+            }
+            .header h1 {
+                font-family: var(--font-display);
+                font-size: clamp(40px, 7vw, 72px);
+                font-weight: 500;
+                line-height: 1.08;
+                color: var(--fg);
+                text-wrap: balance;
+            }
+            .header .subtitle {
+                font-size: clamp(16px, 2vw, 20px);
+                line-height: 1.6;
+                color: var(--muted);
+                margin-top: 16px;
+                max-width: 680px;
+            }
+            .card {
+                background: color-mix(in oklab, var(--surface) 94%, white);
+                border: 1px solid var(--border);
+                border-radius: 18px;
+                padding: clamp(20px, 3vw, 32px);
+                margin-bottom: 18px;
+                box-shadow:
+                    rgba(0, 0, 0, 0.04) 0 12px 42px,
+                    0 0 0 1px rgba(240, 238, 230, 0.72);
+            }
+            .card-title {
+                font-family: var(--font-display);
+                font-size: clamp(24px, 3vw, 32px);
+                font-weight: 500;
+                line-height: 1.15;
+                color: var(--fg);
+                margin-bottom: 22px;
+                padding-bottom: 16px;
+                border-bottom: 1px solid var(--border);
+            }
+            .client-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+                gap: 10px;
+                margin-bottom: 14px;
+            }
+            .client-btn,
+            button {
+                min-height: 44px;
+                background: var(--surface-strong) !important;
+                border: 1px solid var(--border) !important;
+                color: var(--fg) !important;
+                font-family: var(--font-body) !important;
+                font-size: 13px !important;
+                font-weight: 600;
+                cursor: pointer;
+                border-radius: 12px !important;
+                text-align: center;
+                transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+                box-shadow: 0 0 0 1px rgba(209, 207, 197, 0.4) !important;
+            }
+            .client-btn {
+                padding: 12px 14px;
+                letter-spacing: 0.02em;
+            }
+            .client-btn:hover,
+            button:hover {
+                background: var(--dark) !important;
+                color: var(--surface) !important;
+                border-color: var(--dark) !important;
+                transform: translateY(-1px);
+                text-decoration: none;
+            }
+            .subscription-url,
+            #clientSubscriptionUrl {
+                background: var(--surface-strong) !important;
+                border: 1px dashed var(--ring) !important;
+                padding: 14px 16px !important;
+                word-break: break-all;
+                font-family: var(--font-mono) !important;
+                font-size: 12px !important;
+                color: var(--green) !important;
+                border-radius: 12px !important;
+                margin-top: 14px !important;
+                line-height: 1.65;
+                overflow-x: auto;
+                max-width: 100%;
+                box-shadow: none !important;
+                text-shadow: none !important;
+            }
+            .subscription-url:empty,
+            #clientSubscriptionUrl:empty { display: none; }
+            .lang-bar {
+                position: fixed;
+                inset-block-start: 18px;
+                inset-inline-end: 18px;
+                z-index: 100;
+            }
+            #languageSelector {
+                appearance: none;
+                background: rgba(250, 249, 245, 0.92);
+                border: 1px solid var(--border);
+                color: var(--fg);
+                padding: 9px 34px 9px 12px;
+                font-size: 13px;
+                border-radius: 999px;
+                cursor: pointer;
+                box-shadow: 0 0 0 1px rgba(209, 207, 197, 0.35);
+            }
+            #languageSelector option { background: var(--surface); color: var(--fg); }
+            select, input, textarea {
+                font-family: var(--font-body) !important;
+                outline: none;
+            }
+            input[type="text"],
+            input[type="password"],
+            input[type="number"],
+            textarea,
+            select,
+            select.cp-input {
+                background: var(--surface-strong) !important;
+                border: 1px solid var(--border) !important;
+                color: var(--fg) !important;
+                padding: 11px 12px !important;
+                border-radius: 12px !important;
+                width: 100%;
+                min-height: 42px;
+                font-size: 13px !important;
+                box-shadow: inset 0 0 0 1px rgba(240, 238, 230, 0.7) !important;
+                text-shadow: none !important;
+            }
+            textarea { min-height: 88px; resize: vertical; }
+            select:focus,
+            input:focus,
+            textarea:focus {
+                border-color: var(--accent) !important;
+                box-shadow: 0 0 0 3px rgba(201, 100, 66, 0.14) !important;
+            }
+            label,
+            .card label,
+            .card label[style] {
+                color: var(--muted) !important;
+                font-family: var(--font-body) !important;
+                font-size: 12px !important;
+                font-weight: 650 !important;
+                letter-spacing: 0.06em !important;
+                text-transform: uppercase;
+                text-shadow: none !important;
+            }
+            small,
+            .card small,
+            .card small[style] {
+                color: var(--muted-2) !important;
+                line-height: 1.55 !important;
+                text-shadow: none !important;
+            }
+            .card small[style*="margin-left"] {
+                margin-left: 0 !important;
+                margin-inline-start: 26px !important;
+            }
+            .card label[style*="margin-left"] {
+                margin-left: 0 !important;
+                margin-inline-start: 15px !important;
+            }
+            #systemStatus,
+            #kvStatus,
+            #currentConfig,
+            #pathTypeInfo,
+            #statusMessage,
+            #latencyResultsList,
+            #cityFilterContainer,
+            .card div[style*="rgba(15, 3, 40"],
+            .card div[style*="rgba(20, 5, 50"],
+            .card div[style*="rgba(8, 4, 28"],
+            .card div[style*="rgba(0, 0, 0"] {
+                background: color-mix(in oklab, var(--surface-strong) 88%, var(--sand)) !important;
+                border: 1px solid var(--border) !important;
+                border-radius: 14px !important;
+                color: var(--fg) !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+            }
+            #systemStatus {
+                line-height: 1.8;
+                font-size: 13px;
+                display: grid;
+                gap: 8px;
+            }
+            #systemStatus > div,
+            #systemStatus > div[style],
+            #systemStatus span[style],
+            #kvStatus,
+            #kvStatus span[style],
+            #currentConfig,
+            #currentConfig span[style],
+            #currentConfig div[style],
+            #pathTypeInfo,
+            #pathTypeInfo span[style],
+            #pathTypeInfo div[style],
+            #statusMessage,
+            #statusMessage span[style],
+            #latencyTestStatus,
+            #latencyTestResults span[style],
+            #latencyTestResults label[style],
+            #cityCheckboxesContainer label[style],
+            .card span[style],
+            .card h3[style],
+            .card h4[style] {
+                color: var(--fg) !important;
+                font-family: var(--font-body) !important;
+                text-shadow: none !important;
+            }
+            #systemStatus > div:not(:first-child),
+            #geoInfo,
+            #selectionLogic,
+            #latencyTestStatus {
+                color: var(--muted) !important;
+            }
+            #systemStatus > div:first-child,
+            #pathTypeInfo > div:first-child,
+            .card h3[style],
+            .card h4[style] {
+                color: var(--accent) !important;
+                font-weight: 700 !important;
+            }
+            #systemStatus span[style],
+            #kvStatus span[style],
+            #pathTypeInfo span[style],
+            #latencyTestResults span[style] {
+                color: var(--green) !important;
+            }
+            #cityCheckboxesContainer label[style] {
+                background: var(--surface-strong) !important;
+                border: 1px solid var(--border) !important;
+                border-radius: 999px !important;
+                padding: 6px 10px !important;
+            }
+            input[type="checkbox"],
+            input[type="radio"] {
+                accent-color: var(--accent);
+                inline-size: 18px !important;
+                block-size: 18px !important;
+                margin-inline-end: 8px !important;
+            }
+            .cp-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+            .cp-field { flex: 1; min-width: 200px; }
+            .cp-checkbox { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+            .cp-checkbox label {
+                margin: 0;
+                text-transform: none;
+                letter-spacing: normal;
+                font-size: 13px;
+                color: var(--fg);
+            }
+            .cp-toggle-status {
+                padding: 4px 8px;
+                border-radius: 999px;
+                font-size: 11px;
+                font-weight: 700;
+            }
+            .cp-toggle-status.on { background: rgba(79,111,82,0.14); color: var(--green); }
+            .cp-toggle-status.off { background: rgba(181,51,51,0.12); color: var(--red); }
+            .cp-warn {
+                background: rgba(159,113,48,0.10) !important;
+                border: 1px solid rgba(159,113,48,0.24) !important;
+                padding: 12px 14px;
+                border-radius: 12px;
+                font-size: 12px;
+                margin: 8px 0;
+                color: var(--amber) !important;
+            }
+            .help-link { font-size: 12px; color: var(--muted); margin-inline-start: 8px; }
+            .help-link:hover { color: var(--accent); }
+            .api-section { margin-top: 12px; }
+            .api-section textarea { min-height: 80px; font-family: var(--font-mono) !important; font-size: 12px; }
+            hr { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+            .cp-toast,
+            .cp-toast-stack .cp-toast {
+                border-radius: 12px !important;
+                font-size: 13px;
+                box-shadow: rgba(0, 0, 0, 0.08) 0 12px 32px !important;
+            }
+            .cp-toast.success { background: var(--green) !important; color: #fff !important; }
+            .cp-toast.error { background: var(--red) !important; color: #fff !important; }
+            .cp-toast.info { background: var(--dark) !important; color: var(--surface) !important; }
+            .cp-action-bar {
+                position: fixed;
+                inset-inline: 50% auto;
+                inset-block-end: 20px;
+                transform: translateX(-50%);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px;
+                background: rgba(250, 249, 245, 0.92);
+                border: 1px solid var(--border);
+                border-radius: 18px;
+                box-shadow: rgba(0, 0, 0, 0.08) 0 16px 44px, 0 0 0 1px rgba(209, 207, 197, 0.5);
+                z-index: 120;
+                backdrop-filter: blur(14px);
+            }
+            .cp-fab-save,
+            .cp-action-btn {
+                min-height: 44px;
+                padding: 0 16px !important;
+                border-radius: 12px !important;
+                white-space: nowrap;
+            }
+            .cp-fab-save {
+                background: var(--accent) !important;
+                border-color: var(--accent) !important;
+                color: var(--surface) !important;
+            }
+            .cp-action-btn-danger:hover {
+                background: var(--red) !important;
+                border-color: var(--red) !important;
+            }
+            .cp-fab-dot {
+                display: inline-block;
+                inline-size: 7px;
+                block-size: 7px;
+                border-radius: 50%;
+                background: var(--surface);
+                margin-inline-start: 8px;
+                opacity: 0.75;
+            }
+            @keyframes pulse {
+                0%, 100% { box-shadow: 0 0 0 1px rgba(201,100,66,0.35); }
+                50% { box-shadow: 0 0 0 5px rgba(201,100,66,0.16); }
+            }
+            html[dir="rtl"] .header { padding-inline-end: 0; padding-inline-start: 132px; }
+            html[dir="rtl"] .cp-action-bar {
+                inset-inline: auto 50%;
+                transform: translateX(50%);
+            }
+            html[dir="rtl"] input[type="text"],
+            html[dir="rtl"] input[type="password"],
+            html[dir="rtl"] input[type="number"],
+            html[dir="rtl"] textarea {
+                direction: ltr;
+            }
+            @media (max-width: 760px) {
+                body { padding-bottom: 140px; }
+                .container { width: min(100vw - 24px, 1180px); padding-top: 76px; }
+                .header { padding-inline-end: 0; }
+                html[dir="rtl"] .header { padding-inline-start: 0; }
+                .card { border-radius: 16px; }
+                .client-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+                .cp-action-bar {
+                    inset-inline: 12px;
+                    transform: none;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+                html[dir="rtl"] .cp-action-bar {
+                    inset-inline: 12px;
+                    transform: none;
+                }
+                .cp-fab-save,
+                .cp-action-btn { flex: 1 1 auto; }
+            }
+            @media (max-width: 430px) {
+                .client-grid { grid-template-columns: 1fr; }
+                .cp-btn-label { display: none; }
+            }
+        </style>
+
+    </head>
+    <body>
+        <div class="lang-bar">
+            <select id="languageSelector" onchange="changeLanguage(this.value)">
+                <option value="zh" ${!isFarsi ? 'selected' : ''}>🇨🇳 中文</option>
+                <option value="fa" ${isFarsi ? 'selected' : ''}>🇮🇷 فارسی</option>
+            </select>
+            
+        </div>
+        <div class="container">
+            <div class="header">
+                    <h1 class="title">${t.title}</h1>
+                    <p class="subtitle">${t.subtitle}</p>
+            </div>
+            <div class="card">
+                    <h2 class="card-title">${t.selectClient}</h2>
+                <div class="client-grid">
+                    <button class="client-btn" onclick="generateClientLink(atob('Y2xhc2g='), 'CLASH')">CLASH</button>
+                    <button class="client-btn" onclick="generateClientLink(atob('Y2xhc2g='), 'STASH')">STASH</button>
+                    <button class="client-btn" onclick="generateClientLink(atob('c3VyZ2U='), 'SURGE')">SURGE</button>
+                    <button class="client-btn" onclick="generateClientLink(atob('c2luZ2JveA=='), 'SING-BOX')">SING-BOX</button>
+                    <button class="client-btn" onclick="generateClientLink(atob('bG9vbg=='), 'LOON')">LOON</button>
+                    <button class="client-btn" onclick="generateClientLink(atob('cXVhbng='), 'QUANTUMULT X')">QUANTUMULT X</button>
+                    <button class="client-btn" onclick="generateClientLink(atob('djJyYXk='), 'V2RAY')">V2RAY</button>
+                    <button class="client-btn" onclick="generateClientLink(atob('djJyYXk='), 'V2RAYNG')">V2RAYNG</button>
+                    <button class="client-btn" onclick="generateClientLink(atob('djJyYXk='), 'NEKORAY')">NEKORAY</button>
+                    <button class="client-btn" onclick="generateClientLink(atob('djJyYXk='), 'Shadowrocket')">Shadowrocket</button>
+                </div>
+                <div class="subscription-url" id="clientSubscriptionUrl"></div>
+            </div>
+            <div class="card">
+                    <h2 class="card-title">${t.systemStatus}</h2>
+                <div id="systemStatus" style="margin: 20px 0; padding: 15px; background: rgba(8, 4, 28, 0.8); border: 2px solid #00f0ff; box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), inset 0 0 15px rgba(0, 240, 255, 0.1); position: relative; overflow: hidden;">
+                        <div style="color: #00f0ff; margin-bottom: 15px; font-weight: bold; text-shadow: 0 0 5px #00f0ff;">[ ${t.checking} ]</div>
+                        <div id="regionStatus" style="margin: 8px 0; color: #00f0ff; font-family: 'Courier New', monospace; text-shadow: 0 0 3px #00f0ff;">${t.workerRegion}${t.checking}</div>
+                        <div id="geoInfo" style="margin: 8px 0; color: #7aa9c4; font-family: 'Courier New', monospace; font-size: 0.9rem; text-shadow: 0 0 3px #7aa9c4;">${t.detectionMethod}${t.checking}</div>
+                        <div id="backupStatus" style="margin: 8px 0; color: #00f0ff; font-family: 'Courier New', monospace; text-shadow: 0 0 3px #00f0ff;">${t.proxyIPStatus}${t.checking}</div>
+                        <div id="currentIP" style="margin: 8px 0; color: #00f0ff; font-family: 'Courier New', monospace; text-shadow: 0 0 3px #00f0ff;">${t.currentIP}${t.checking}</div>
+                        <div id="echStatus" style="margin: 8px 0; color: #00f0ff; font-family: 'Courier New', monospace; text-shadow: 0 0 3px #00f0ff; font-size: 0.9rem;">ECH状态: ${t.checking}</div>
+                        <div id="regionMatch" style="margin: 8px 0; color: #00f0ff; font-family: 'Courier New', monospace; text-shadow: 0 0 3px #00f0ff;">${t.regionMatch}${t.checking}</div>
+                        <div id="selectionLogic" style="margin: 8px 0; color: #7aa9c4; font-family: 'Courier New', monospace; font-size: 0.9rem; text-shadow: 0 0 3px #7aa9c4;">${t.selectionLogic}${t.selectionLogicText}</div>
+                </div>
+            </div>
+            <div class="card" id="configCard" style="display: none;">
+                    <h2 class="card-title">${t.configManagement}</h2>
+                <div id="kvStatus" style="margin-bottom: 20px; padding: 10px; background: rgba(8, 4, 28, 0.8); border: 1px solid #00f0ff; color: #00f0ff;">
+                    ${t.kvStatusChecking}
+                </div>
+                <div id="configContent" style="display: none;">
+                    <form id="regionForm" style="margin-bottom: 20px;">
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.specifyRegion}</label>
+                            <select id="wkRegion" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                    <option value="">${t.autoDetect}</option>
+                                    <option value="HK">${t.regionNames.HK}</option>
+                                    <option value="US">${t.regionNames.US}</option>
+                                    <option value="SG">${t.regionNames.SG}</option>
+                                    <option value="JP">${t.regionNames.JP}</option>
+                                    <option value="KR">${t.regionNames.KR}</option>
+                                    <option value="DE">${t.regionNames.DE}</option>
+                                    <option value="SE">${t.regionNames.SE}</option>
+                                    <option value="NL">${t.regionNames.NL}</option>
+                                    <option value="FI">${t.regionNames.FI}</option>
+                                    <option value="GB">${t.regionNames.GB}</option>
+                            </select>
+                                <small id="wkRegionHint" style="color: #7aa9c4; font-size: 0.85rem; display: none;">⚠️ ${t.customIPDisabledHint}</small>
+                        </div>
+                    </form>
+                    <form id="otherConfigForm" style="margin-bottom: 20px;">
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.protocolSelection}</label>
+                            <div style="padding: 15px; background: rgba(15, 3, 40, 0.6); border: 1px solid #00f0ff; border-radius: 5px;">
+                                <div style="margin-bottom: 10px;">
+                                    <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                        <input type="checkbox" id="ev" checked style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                            <span style="font-size: 1.1rem;">${t.enableVLESS}</span>
+                                    </label>
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                        <input type="checkbox" id="et" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                            <span style="font-size: 1.1rem;">${t.enableTrojan}</span>
+                                    </label>
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                        <input type="checkbox" id="ex" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                            <span style="font-size: 1.1rem;">${t.enableXhttp}</span>
+                                    </label>
+                                </div>
+                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0, 240, 255, 0.3);">
+                                    <div style="margin-bottom: 10px;">
+                                        <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                            <input type="checkbox" id="ech" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                                <span style="font-size: 1.1rem;">${t.enableECH}</span>
+                                        </label>
+                                        <small style="color: #7aa9c4; font-size: 0.8rem; display: block; margin-top: 5px; margin-left: 26px;">${t.enableECHHint}</small>
+                                    </div>
+                                    <div style="margin-top: 15px; margin-bottom: 10px;">
+                                        <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-size: 0.95rem;">${t.customDNS}</label>
+                                        <input type="text" id="customDNS" placeholder="${t.customDNSPlaceholder}" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 13px;">
+                                        <small style="color: #7aa9c4; font-size: 0.8rem; display: block; margin-top: 5px;">${t.customDNSHint}</small>
+                                    </div>
+                                    <div style="margin-bottom: 10px;">
+                                        <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-size: 0.95rem;">${t.customECHDomain}</label>
+                                        <input type="text" id="customECHDomain" placeholder="${t.customECHDomainPlaceholder}" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 13px;">
+                                        <small style="color: #7aa9c4; font-size: 0.8rem; display: block; margin-top: 5px;">${t.customECHDomainHint}</small>
+                                    </div>
+                                    <div style="margin-bottom: 10px;">
+                                        <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-size: 0.95rem;">${t.alpn}</label>
+                                        <select id="alpn" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 13px;">
+                                            <option value="">${t.alpnDefault}</option>
+                                            <option value="h3">h3</option>
+                                            <option value="h2">h2</option>
+                                            <option value="http/1.1">http/1.1</option>
+                                            <option value="h3,h2">h3,h2</option>
+                                            <option value="h2,http/1.1">h2,http/1.1</option>
+                                            <option value="h3,h2,http/1.1">h3,h2,http/1.1</option>
+                                        </select>
+                                        <small style="color: #7aa9c4; font-size: 0.8rem; display: block; margin-top: 5px;">${t.alpnHint}</small>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0, 240, 255, 0.3);">
+                                        <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-size: 0.95rem;">${t.trojanPassword}</label>
+                                        <input type="text" id="tp" placeholder="${t.trojanPasswordPlaceholder}" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 13px;">
+                                        <small style="color: #7aa9c4; font-size: 0.8rem; display: block; margin-top: 5px;">${t.trojanPasswordHint}</small>
+                                </div>
+                                    <small style="color: #7aa9c4; font-size: 0.85rem; display: block; margin-top: 10px;">${t.protocolHint}</small>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.customHomepage}</label>
+                                <input type="text" id="customHomepage" placeholder="${t.customHomepagePlaceholder}" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                <small style="color: #7aa9c4; font-size: 0.85rem;">${t.customHomepageHint}</small>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.customPath}</label>
+                                <input type="text" id="customPath" placeholder="${isFarsi ? 'مثال: /mypath یا خالی بگذارید تا از UUID استفاده شود' : '例如: /mypath 或留空使用 UUID'}" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                <small style="color: #7aa9c4; font-size: 0.85rem;">${isFarsi ? 'مسیر اشتراک سفارشی. اگر خالی بگذارید از UUID به عنوان مسیر استفاده می‌شود.' : '自定义订阅路径。留空则使用 UUID 作为路径。'}</small>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.customIP}</label>
+                                <input type="text" id="customIP" placeholder="${isFarsi ? 'مثال: 1.2.3.4:443' : '例如: 1.2.3.4:443'}" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                <small style="color: #7aa9c4; font-size: 0.85rem;">${isFarsi ? 'آدرس و پورت ProxyIP سفارشی' : '自定义ProxyIP地址和端口'}</small>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.preferredIPs}</label>
+                                <input type="text" id="yx" placeholder="${isFarsi ? 'مثال: 1.2.3.4:443#گره هنگ‌کنگ,5.6.7.8:80#گره آمریکا,example.com:8443#گره سنگاپور' : '例如: 1.2.3.4:443#日本节点,5.6.7.8:80#美国节点,example.com:8443#新加坡节点'}" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                <small style="color: #7aa9c4; font-size: 0.85rem;">${isFarsi ? 'فرمت: IP:پورت#نام گره یا IP:پورت (بدون # از نام پیش‌فرض استفاده می‌شود). پشتیبانی از چندین مورد، با کاما جدا می‌شوند. <span style="color: #ffb400;">IP های اضافه شده از طریق API به طور خودکار در اینجا نمایش داده می‌شوند.</span>' : '格式: IP:端口#节点名称 或 IP:端口 (无#则使用默认名称)。支持多个，用逗号分隔。<span style="color: #ffb400;">API添加的IP会自动显示在这里。</span>'}</small>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.preferredIPsURL}</label>
+                                <input type="text" id="yxURL" placeholder="${isFarsi ? 'URL منبع لیست IP ترجیحی را وارد کنید' : '输入优选IP列表来源URL'}" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                <small style="color: #7aa9c4; font-size: 0.85rem;">${isFarsi ? 'URL منبع لیست IP ترجیحی سفارشی، اگر خالی بگذارید از آدرس پیش‌فرض استفاده می‌شود' : '自定义优选IP列表来源URL，留空则使用默认地址'}</small>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px; padding: 15px; background: rgba(20, 5, 50, 0.6); border: 2px solid #7aa9c4; border-radius: 8px;">
+                            <h4 style="color: #00f0ff; margin: 0 0 15px 0; font-size: 1.1rem; text-shadow: 0 0 5px #00f0ff;">⚡ ${t.latencyTest}</h4>
+                            <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: center;">
+                                <div style="min-width: 120px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #00f0ff; font-size: 0.9rem;">${t.ipSource}</label>
+                                    <select id="ipSourceSelect" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 13px; cursor: pointer;">
+                                        <option value="manual">${t.manualInput}</option>
+                                        <option value="cfRandom">${t.cfRandomIP}</option>
+                                        <option value="urlFetch">${t.urlFetch}</option>
+                                    </select>
+                                </div>
+                                <div style="width: 100px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #00f0ff; font-size: 0.9rem;">${t.latencyTestPort}</label>
+                                    <input type="number" id="latencyTestPort" value="443" min="1" max="65535" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 13px;">
+                                </div>
+                                <div id="randomCountDiv" style="width: 100px; display: none;">
+                                    <label style="display: block; margin-bottom: 5px; color: #00f0ff; font-size: 0.9rem;">${t.randomCount}</label>
+                                    <input type="number" id="randomIPCount" value="20" min="1" max="100" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 13px;">
+                                </div>
+                                <div style="width: 80px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #00f0ff; font-size: 0.9rem;">${isFarsi ? 'رشته‌ها' : '线程'}</label>
+                                    <input type="number" id="testThreads" value="5" min="1" max="50" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 13px;">
+                                </div>
+                            </div>
+                            <div id="manualInputDiv" style="margin-bottom: 10px;">
+                                <label style="display: block; margin-bottom: 5px; color: #00f0ff; font-size: 0.9rem;">${t.latencyTestIP}</label>
+                                <input type="text" id="latencyTestInput" placeholder="${t.latencyTestIPPlaceholder}" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 13px;">
+                            </div>
+                            <div id="urlFetchDiv" style="margin-bottom: 10px; display: none;">
+                                <label style="display: block; margin-bottom: 5px; color: #00f0ff; font-size: 0.9rem;">${t.fetchURL}</label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" id="fetchURLInput" placeholder="${t.fetchURLPlaceholder}" style="flex: 1; padding: 10px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 13px;">
+                                    <button type="button" id="fetchIPBtn" style="background: rgba(0, 200, 255, 0.2); border: 1px solid #00aaff; padding: 8px 16px; color: #00aaff; font-family: 'Courier New', monospace; cursor: pointer; white-space: nowrap;">⬇ ${t.fetchIP}</button>
+                                </div>
+                            </div>
+                            <div id="cfRandomDiv" style="margin-bottom: 10px; display: none;">
+                                <button type="button" id="generateCFIPBtn" style="background: rgba(0, 240, 255, 0.15); border: 1px solid #00f0ff; padding: 10px 20px; color: #00f0ff; font-family: 'Courier New', monospace; cursor: pointer; width: 100%; transition: all 0.3s;">🎲 ${t.generateIP}</button>
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                <button type="button" id="startLatencyTest" style="background: rgba(0, 240, 255, 0.2); border: 1px solid #00f0ff; padding: 8px 16px; color: #00f0ff; font-family: 'Courier New', monospace; cursor: pointer; transition: all 0.3s;">▶ ${t.startTest}</button>
+                                <button type="button" id="stopLatencyTest" style="background: rgba(255, 0, 0, 0.2); border: 1px solid #ff3860; padding: 8px 16px; color: #ff3860; font-family: 'Courier New', monospace; cursor: pointer; display: none; transition: all 0.3s;">⏹ ${t.stopTest}</button>
+                            </div>
+                            <div id="latencyTestStatus" style="color: #7aa9c4; font-size: 0.9rem; margin-bottom: 10px; display: none;"></div>
+                            <div id="latencyTestResults" style="max-height: 250px; overflow-y: auto; display: none;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <span style="color: #00f0ff; font-weight: bold;">${t.testResult}</span>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button type="button" id="selectAllResults" style="background: transparent; border: 1px solid #7aa9c4; padding: 4px 10px; color: #7aa9c4; font-size: 0.8rem; cursor: pointer;">${t.selectAll}</button>
+                                        <button type="button" id="deselectAllResults" style="background: transparent; border: 1px solid #7aa9c4; padding: 4px 10px; color: #7aa9c4; font-size: 0.8rem; cursor: pointer;">${t.deselectAll}</button>
+                                    </div>
+                                </div>
+                                <div id="cityFilterContainer" style="margin-bottom: 10px; padding: 10px; background: rgba(15, 3, 40, 0.6); border: 1px solid #7aa9c4; border-radius: 4px; display: none;">
+                                    <div style="margin-bottom: 8px;">
+                                        <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff; font-size: 0.9rem;">
+                                            <input type="radio" name="cityFilterMode" value="all" checked style="margin-right: 6px; width: 16px; height: 16px; cursor: pointer;">
+                                            <span>${isFarsi ? '全部城市' : '全部城市'}</span>
+                                        </label>
+                                        <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff; font-size: 0.9rem; margin-left: 15px;">
+                                            <input type="radio" name="cityFilterMode" value="fastest10" style="margin-right: 6px; width: 16px; height: 16px; cursor: pointer;">
+                                            <span>${isFarsi ? '只选择最快的10个' : '只选择最快的10个'}</span>
+                                        </label>
+                                    </div>
+                                    <div id="cityCheckboxesContainer" style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 80px; overflow-y: auto; padding: 5px;"></div>
+                                </div>
+                                <div id="latencyResultsList" style="background: rgba(0, 0, 0, 0.5); border: 1px solid #004400; border-radius: 4px; padding: 10px;"></div>
+                                <div style="margin-top: 10px; display: flex; gap: 10px;">
+                                    <button type="button" id="overwriteSelectedToYx" style="flex: 1; background: rgba(0, 220, 130, 0.3); border: 1px solid #00f0ff; padding: 10px 20px; color: #00f0ff; font-family: 'Courier New', monospace; font-weight: bold; cursor: pointer; transition: all 0.3s;">${isFarsi ? '覆盖添加' : '覆盖添加'}</button>
+                                    <button type="button" id="appendSelectedToYx" style="flex: 1; background: rgba(0, 178, 110, 0.3); border: 1px solid #7aa9c4; padding: 10px 20px; color: #7aa9c4; font-family: 'Courier New', monospace; font-weight: bold; cursor: pointer; transition: all 0.3s;">${isFarsi ? '追加添加' : '追加添加'}</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.socks5Config}</label>
+                                <input type="text" id="socksConfig" placeholder="${isFarsi ? 'مثال: user:pass@host:port یا host:port' : '例如: user:pass@host:port 或 host:port'}" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                <small style="color: #7aa9c4; font-size: 0.85rem;">${isFarsi ? 'آدرس پروکسی SOCKS5، برای انتقال تمام ترافیک خروجی استفاده می‌شود' : 'SOCKS5代理地址，用于转发所有出站流量'}</small>
+                        </div>
+                    </form>
+
+                    <h3 style="color: #00f0ff; margin: 20px 0 15px 0; font-size: 1.2rem;">${t.advancedControl}</h3>
+                    <form id="advancedConfigForm" style="margin-bottom: 20px;">
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.subscriptionConverter}</label>
+                                <input type="text" id="scu" placeholder="${t.subscriptionConverterPlaceholder}" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                <small style="color: #7aa9c4; font-size: 0.85rem;">${t.subscriptionConverterHint}</small>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.builtinPreferred}</label>
+                            <div style="padding: 15px; background: rgba(15, 3, 40, 0.6); border: 1px solid #00f0ff; border-radius: 5px;">
+                                <div style="margin-bottom: 10px;">
+                                    <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                        <input type="checkbox" id="ena" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                            <span style="font-size: 1.1rem;">${t.enableNativeAddress}</span>
+                                    </label>
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                        <input type="checkbox" id="epd" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                            <span style="font-size: 1.1rem;">${t.enablePreferredDomain}</span>
+                                    </label>
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                        <input type="checkbox" id="epi" checked style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                            <span style="font-size: 1.1rem;">${t.enablePreferredIP}</span>
+                                    </label>
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                        <input type="checkbox" id="egi" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                            <span style="font-size: 1.1rem;">${t.enableGitHubPreferred}</span>
+                                    </label>
+                                </div>
+                                    <small style="color: #7aa9c4; font-size: 0.85rem; display: block; margin-top: 10px;">${t.builtinPreferredHint}</small>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">优选IP筛选设置</label>
+                            <div style="padding: 15px; background: rgba(15, 3, 40, 0.6); border: 1px solid #00f0ff; border-radius: 5px;">
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">IP版本选择</label>
+                                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                        <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                            <input type="checkbox" id="ipv4Enabled" checked style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                            <span style="font-size: 1rem;">IPv4</span>
+                                        </label>
+                                        <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                            <input type="checkbox" id="ipv6Enabled" checked style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                            <span style="font-size: 1rem;">IPv6</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">运营商选择</label>
+                                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                        <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                            <input type="checkbox" id="ispMobile" checked style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                            <span style="font-size: 1rem;">移动</span>
+                                        </label>
+                                        <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                            <input type="checkbox" id="ispUnicom" checked style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                            <span style="font-size: 1rem;">联通</span>
+                                        </label>
+                                        <label style="display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff;">
+                                            <input type="checkbox" id="ispTelecom" checked style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                                            <span style="font-size: 1rem;">电信</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                    <small style="color: #7aa9c4; font-size: 0.85rem; display: block; margin-top: 10px;">选择要使用的IP版本和运营商，未选中的将被过滤</small>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.allowAPIManagement}</label>
+                            <select id="apiEnabled" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                    <option value="">${t.apiEnabledDefault}</option>
+                                    <option value="yes">${t.apiEnabledYes}</option>
+                            </select>
+                                <small style="color: #ffb400; font-size: 0.85rem;">${t.apiEnabledHint}</small>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.regionMatching}</label>
+                            <select id="regionMatching" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                    <option value="">${t.regionMatchingDefault}</option>
+                                    <option value="no">${t.regionMatchingNo}</option>
+                            </select>
+                                <small style="color: #7aa9c4; font-size: 0.85rem;">${t.regionMatchingHint}</small>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.downgradeControl}</label>
+                            <select id="downgradeControl" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                    <option value="">${t.downgradeControlDefault}</option>
+                                    <option value="no">${t.downgradeControlNo}</option>
+                            </select>
+                                <small style="color: #7aa9c4; font-size: 0.85rem;">${t.downgradeControlHint}</small>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.tlsControl}</label>
+                            <select id="portControl" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                    <option value="">${t.tlsControlDefault}</option>
+                                    <option value="yes">${t.tlsControlYes}</option>
+                            </select>
+                                <small style="color: #7aa9c4; font-size: 0.85rem;">${t.tlsControlHint}</small>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: #00f0ff; font-weight: bold; text-shadow: 0 0 3px #00f0ff;">${t.preferredControl}</label>
+                            <select id="preferredControl" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-size: 14px;">
+                                    <option value="">${t.preferredControlDefault}</option>
+                                    <option value="yes">${t.preferredControlYes}</option>
+                            </select>
+                                <small style="color: #7aa9c4; font-size: 0.85rem;">${t.preferredControlHint}</small>
+                        </div>
+                    </form>
+                    <div id="currentConfig" style="background: rgba(0, 0, 0, 0.9); border: 1px solid #00f0ff; padding: 15px; margin: 10px 0; font-family: 'Courier New', monospace; color: #00f0ff;">
+                            ${t.loading}
+                    </div>
+                    <div id="pathTypeInfo" style="background: rgba(15, 3, 40, 0.7); border: 1px solid #00f0ff; padding: 15px; margin: 10px 0; font-family: 'Courier New', monospace; color: #00f0ff;">
+                            <div style="font-weight: bold; margin-bottom: 8px; color: #00ff9d; text-shadow: 0 0 5px #00ff9d;">${t.currentConfig}</div>
+                            <div id="pathTypeStatus">${t.checking}</div>
+                    </div>
+                </div>
+                <div id="statusMessage" style="display: none; padding: 10px; margin: 10px 0; border: 1px solid #00f0ff; background: rgba(8, 4, 28, 0.8); color: #00f0ff; text-shadow: 0 0 5px #00f0ff;"></div>
+            </div>
+            
+            
+        </div>
+        <div id="cpToastStack" class="cp-toast-stack" aria-live="polite" aria-atomic="false"></div>
+        <div id="cpActionStatus" class="cp-action-status" role="status" aria-live="polite"></div>
+        <div id="cpActionBar" class="cp-action-bar" role="toolbar" aria-label="${t.configManagement}">
+            <button type="button" id="cpBtnSaveAll" class="cp-fab-save" title="${isFarsi ? 'ذخیره همه تنظیمات' : '保存所有配置 (Ctrl+S)'}">
+                <span class="cp-fab-icon">▣</span>
+                <span>${isFarsi ? 'ذخیره همه' : '保 存 全 部'}</span>
+                <span class="cp-fab-dot" aria-hidden="true"></span>
+            </button>
+            <button type="button" id="cpBtnRefresh" class="cp-action-btn" data-tip="${t.refreshConfig}" aria-label="${t.refreshConfig}">
+                <span aria-hidden="true">↻</span>
+                <span class="cp-btn-label">${t.refreshConfig}</span>
+            </button>
+            <button type="button" id="cpBtnReset" class="cp-action-btn cp-action-btn-danger" data-tip="${t.resetConfig}" aria-label="${t.resetConfig}">
+                <span aria-hidden="true">⌫</span>
+                <span class="cp-btn-label">${t.resetConfig}</span>
+            </button>
+        </div>
+        <script>
+            // 订阅转换地址（从服务器配置注入）
+            var SUB_CONVERTER_URL = "${ scu }";
+            // 远程配置URL（硬编码）
+            var REMOTE_CONFIG_URL = "${ remoteConfigUrl }";
+
+            // 翻译对象
+            const translations = {
+                zh: {
+                    subscriptionCopied: '订阅链接已复制',
+                    autoSubscriptionCopied: '自动识别订阅链接已复制，客户端访问时会根据User-Agent自动识别并返回对应格式'
+                },
+                fa: {
+                    subscriptionCopied: 'لینک اشتراک کپی شد',
+                    autoSubscriptionCopied: 'لینک اشتراک تشخیص خودکار کپی شد، کلاینت هنگام دسترسی بر اساس User-Agent به طور خودکار تشخیص داده و قالب مربوطه را برمی‌گرداند'
+                }
+            };
+
+            function getCookie(name) {
+                const value = '; ' + document.cookie;
+                const parts = value.split('; ' + name + '=');
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return null;
+            }
+
+            const browserLang = navigator.language || navigator.userLanguage || '';
+            const savedLang = localStorage.getItem('preferredLanguage') || getCookie('preferredLanguage');
+            let isFarsi = false;
+                
+            if (savedLang === 'fa' || savedLang === 'fa-IR') {
+                isFarsi = true;
+            } else if (savedLang === 'zh' || savedLang === 'zh-CN') {
+                isFarsi = false;
+            } else {
+                isFarsi = browserLang.includes('fa') || browserLang.includes('fa-IR');
+            }
+
+            const t = translations[isFarsi ? 'fa' : 'zh'];
+
+            function changeLanguage(lang) {
+                localStorage.setItem('preferredLanguage', lang);
+                // 设置Cookie（有效期1年）
+                const expiryDate = new Date();
+                expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                document.cookie = 'preferredLanguage=' + lang + '; path=/; expires=' + expiryDate.toUTCString() + '; SameSite=Lax';
+                // 刷新页面，不使用URL参数
+                 window.location.reload();
+            }
+
+            // 页面加载时检查 localStorage 和 Cookie，并清理URL参数
+            window.addEventListener('DOMContentLoaded', function() {
+                const savedLang = localStorage.getItem('preferredLanguage') || getCookie('preferredLanguage');
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlLang = urlParams.get('lang');
+
+                // 如果URL中有语言参数，移除它并设置Cookie
+                if (urlLang) {
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.delete('lang');
+                    const newUrl = currentUrl.toString();
+
+                    // 设置Cookie
+                    const expiryDate = new Date();
+                    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                    document.cookie = 'preferredLanguage=' + urlLang + '; path=/; expires=' + expiryDate.toUTCString() + '; SameSite=Lax';
+                    localStorage.setItem('preferredLanguage', urlLang);
+
+                    // 使用history API移除URL参数，不刷新页面
+                    window.history.replaceState({}, '', newUrl);
+                } else if (savedLang) {
+                    // 如果localStorage中有但Cookie中没有，同步到Cookie
+                    const expiryDate = new Date();
+                    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                     document.cookie = 'preferredLanguage=' + savedLang + '; path=/; expires=' + expiryDate.toUTCString() + '; SameSite=Lax';
+                }
+            });
+
+            // 赛博朋克风 toast 通知 (替代 alert)
+            window.cpToast = function(message, type, options) {
+                options = options || {};
+                var stack = document.getElementById('cpToastStack');
+                if (!stack) return;
+                var typeMap = { success: '✓', info: '⌬', warn: '⚠', error: '✕' };
+                var titleMap = { success: 'SUCCESS', info: 'INFO', warn: 'WARN', error: 'ERROR' };
+                type = typeMap[type] ? type : 'success';
+                var duration = options.duration || 3200;
+                var toast = document.createElement('div');
+                toast.className = 'cp-toast cp-toast-' + type;
+                toast.style.setProperty('--cp-toast-dur', duration + 'ms');
+                var icon = document.createElement('span');
+                icon.className = 'cp-toast-icon';
+                icon.textContent = typeMap[type];
+                var body = document.createElement('div');
+                body.className = 'cp-toast-body';
+                var title = document.createElement('div');
+                title.className = 'cp-toast-title';
+                title.textContent = options.title || titleMap[type];
+                var msg = document.createElement('div');
+                msg.className = 'cp-toast-msg';
+                msg.textContent = String(message == null ? '' : message);
+                body.appendChild(title);
+                body.appendChild(msg);
+                var close = document.createElement('button');
+                close.type = 'button';
+                close.className = 'cp-toast-close';
+                close.setAttribute('aria-label', 'close');
+                close.textContent = '✕';
+                toast.appendChild(icon);
+                toast.appendChild(body);
+                toast.appendChild(close);
+                stack.appendChild(toast);
+                requestAnimationFrame(function() { toast.classList.add('cp-show'); });
+                var dismissed = false;
+                function dismiss() {
+                    if (dismissed) return;
+                    dismissed = true;
+                    toast.classList.remove('cp-show');
+                    toast.classList.add('cp-hide');
+                    setTimeout(function() {
+                        if (toast.parentNode) toast.parentNode.removeChild(toast);
+                    }, 400);
+                }
+                close.addEventListener('click', dismiss);
+                var timer = setTimeout(dismiss, duration);
+                toast.addEventListener('mouseenter', function() { clearTimeout(timer); });
+                toast.addEventListener('mouseleave', function() { timer = setTimeout(dismiss, 1200); });
+                return { dismiss: dismiss, element: toast };
+            };
+
+            function tryOpenApp(schemeUrl, fallbackCallback, timeout) {
+                timeout = timeout || 2500;
+                var appOpened = false;
+                var callbackExecuted = false;
+                var startTime = Date.now();
+
+                var blurHandler = function() {
+                    var elapsed = Date.now() - startTime;
+                    if (elapsed < 3000 && !callbackExecuted) {
+                        appOpened = true;
+                    }
+                };
+
+                window.addEventListener('blur', blurHandler);
+
+                var hiddenHandler = function() {
+                    var elapsed = Date.now() - startTime;
+                    if (elapsed < 3000 && !callbackExecuted) {
+                        appOpened = true;
+                    }
+                };
+
+                document.addEventListener('visibilitychange', hiddenHandler);
+
+                var iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.style.width = '1px';
+                iframe.style.height = '1px';
+                iframe.src = schemeUrl;
+                document.body.appendChild(iframe);
+
+                setTimeout(function() {
+                    iframe.parentNode && iframe.parentNode.removeChild(iframe);
+                    window.removeEventListener('blur', blurHandler);
+                    document.removeEventListener('visibilitychange', hiddenHandler);
+
+                    if (!callbackExecuted) {
+                        callbackExecuted = true;
+                        if (!appOpened && fallbackCallback) {
+                            fallbackCallback();
+                        }
+                    }
+                }, timeout);
+            }
+
+            function generateClientLink(clientType, clientName) {
+                var currentUrl = window.location.href;
+                var subscriptionUrl = currentUrl + "/sub";
+                var schemeUrl = '';
+                var displayName = clientName || '';
+                var finalUrl = subscriptionUrl;
+
+                if (clientType === atob('djJyYXk=')) {
+                    finalUrl = subscriptionUrl;
+                    var urlElement = document.getElementById("clientSubscriptionUrl");
+                    urlElement.textContent = finalUrl;
+                    urlElement.style.display = "block";
+                    urlElement.style.overflowWrap = "break-word";
+                    urlElement.style.wordBreak = "break-all";
+                    urlElement.style.overflowX = "auto";
+                    urlElement.style.maxWidth = "100%";
+                    urlElement.style.boxSizing = "border-box";
+
+                    if (clientName === 'V2RAY') {
+                        navigator.clipboard.writeText(finalUrl).then(function() {
+                            cpToast(displayName + " " + t.subscriptionCopied, 'success');
+                        });
+                    } else if (clientName === 'Shadowrocket') {
+                        schemeUrl = 'shadowrocket://add/' + encodeURIComponent(finalUrl);
+                        tryOpenApp(schemeUrl, function() {
+                            navigator.clipboard.writeText(finalUrl).then(function() {
+                                cpToast(displayName + " " + t.subscriptionCopied, 'success');
+                            });
+                        });
+                    } else if (clientName === 'V2RAYNG') {
+                        schemeUrl = 'v2rayng://install?url=' + encodeURIComponent(finalUrl);
+                        tryOpenApp(schemeUrl, function() {
+                            navigator.clipboard.writeText(finalUrl).then(function() {
+                                cpToast(displayName + " " + t.subscriptionCopied, 'success');
+                            });
+                        });
+                    } else if (clientName === 'NEKORAY') {
+                        schemeUrl = 'nekoray://install-config?url=' + encodeURIComponent(finalUrl);
+                        tryOpenApp(schemeUrl, function() {
+                            navigator.clipboard.writeText(finalUrl).then(function() {
+                                cpToast(displayName + " " + t.subscriptionCopied, 'success');
+                            });
+                        });
+                    }
+                } else {
+                    // 统一走内部订阅转换 (?target=xxx)，不再依赖外部 sub-converter
+                    finalUrl = subscriptionUrl + (subscriptionUrl.includes('?') ? '&' : '?') + "target=" + clientType;
+                    var urlElement = document.getElementById("clientSubscriptionUrl");
+                    urlElement.textContent = finalUrl;
+                    urlElement.style.display = "block";
+                    urlElement.style.overflowWrap = "break-word";
+                    urlElement.style.wordBreak = "break-all";
+                    urlElement.style.overflowX = "auto";
+                    urlElement.style.maxWidth = "100%";
+                    urlElement.style.boxSizing = "border-box";
+
+                    if (clientType === atob('Y2xhc2g=')) {
+                        if (clientName === 'STASH') {
+                            schemeUrl = 'stash://install?url=' + encodeURIComponent(finalUrl);
+                            displayName = 'STASH';
+                        } else {
+                            schemeUrl = 'clash://install-config?url=' + encodeURIComponent(finalUrl);
+                            displayName = 'CLASH';
+                        }
+                    } else if (clientType === atob('c3VyZ2U=')) {
+                        schemeUrl = 'surge:///install-config?url=' + encodeURIComponent(finalUrl);
+                        displayName = 'SURGE';
+                    } else if (clientType === atob('c2luZ2JveA==')) {
+                        schemeUrl = 'sing-box://install-config?url=' + encodeURIComponent(finalUrl);
+                        displayName = 'SING-BOX';
+                    } else if (clientType === atob('bG9vbg==')) {
+                        schemeUrl = 'loon://install?url=' + encodeURIComponent(finalUrl);
+                        displayName = 'LOON';
+                    } else if (clientType === atob('cXVhbng=')) {
+                        schemeUrl = 'quantumult-x://install-config?url=' + encodeURIComponent(finalUrl);
+                        displayName = 'QUANTUMULT X';
+                    }
+
+                    if (schemeUrl) {
+                        tryOpenApp(schemeUrl, function() {
+                            navigator.clipboard.writeText(finalUrl).then(function() {
+                                cpToast(displayName + " " + t.subscriptionCopied, 'success');
+                            });
+                        });
+                    } else {
+                        navigator.clipboard.writeText(finalUrl).then(function() {
+                            cpToast(displayName + " " + t.subscriptionCopied, 'success');
+                        });
+                    }
+                }
+            }
+
+            // 页面特效图形化开关 (localStorage 持久化)
+            window.cpApplyFx = function() {
+                var off = localStorage.getItem('cp-fx-off') === '1';
+                document.body.classList.toggle('fx-off', off);
+                var lbl = document.getElementById('cpFxLabel');
+                if (lbl) lbl.textContent = off ? 'FX: OFF' : 'FX: ON';
+                if (off) {
+                    var rain = document.getElementById('matrixCodeRain');
+                    if (rain) rain.innerHTML = '';
+                } else if (typeof createMatrixRain === 'function') {
+                    var r = document.getElementById('matrixCodeRain');
+                    if (r && !r.firstChild) createMatrixRain();
+                }
+            };
+            window.cpToggleFx = function() {
+                var off = localStorage.getItem('cp-fx-off') === '1';
+                localStorage.setItem('cp-fx-off', off ? '0' : '1');
+                window.cpApplyFx();
+            };
+            (function() {
+                if (localStorage.getItem('cp-fx-off') === '1') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.body.classList.add('fx-off');
+                        var lbl = document.getElementById('cpFxLabel');
+                        if (lbl) lbl.textContent = 'FX: OFF';
+                    });
+                }
+            })();
+
+            function createMatrixRain() {
+                if (document.body && document.body.classList.contains('fx-off')) return;
+                const matrixContainer = document.getElementById('matrixCodeRain');
+                if (!matrixContainer) return;
+                const cyberChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ$%#@!?<>+=ABCDEF';
+                const palette = ['#00f0ff', '#ff2bd6', '#a347ff', '#00ff9d'];
+                const columns = Math.floor(window.innerWidth / 20);
+
+                for (let i = 0; i < columns; i++) {
+                    const column = document.createElement('div');
+                    column.className = 'matrix-column';
+                    column.style.left = (i * 20) + 'px';
+                    column.style.animationDelay = (-Math.random() * 15) + 's';
+                    column.style.animationDuration = (Math.random() * 14 + 8) + 's';
+                    column.style.fontSize = (Math.random() * 4 + 12) + 'px';
+                    column.style.opacity = (Math.random() * 0.7 + 0.3).toFixed(2);
+
+                    let text = '';
+                    const charCount = Math.floor(Math.random() * 30 + 18);
+                    for (let j = 0; j < charCount; j++) {
+                        const char = cyberChars[Math.floor(Math.random() * cyberChars.length)];
+                        const useAccent = Math.random() > 0.85;
+                        const color = useAccent ? palette[Math.floor(Math.random() * palette.length)] : '';
+                        text += color
+                            ? ('<span style="color:' + color + ';text-shadow:0 0 8px ' + color + ';">' + char + '</span><br>')
+                            : ('<span>' + char + '</span><br>');
+                    }
+                    column.innerHTML = text;
+                    matrixContainer.appendChild(column);
+                }
+
+                setInterval(function() {
+                    const cols = matrixContainer.querySelectorAll('.matrix-column');
+                    cols.forEach(function(column) {
+                        if (Math.random() > 0.94) {
+                            const chars = column.querySelectorAll('span');
+                            if (chars.length > 0) {
+                                const target = chars[Math.floor(Math.random() * chars.length)];
+                                const prev = target.style.color;
+                                target.style.color = '#ffffff';
+                                target.style.textShadow = '0 0 10px #ffffff, 0 0 18px #00f0ff';
+                                setTimeout(function() {
+                                    target.style.color = prev;
+                                    target.style.textShadow = '';
+                                }, 200);
+                            }
+                        }
+                    });
+                }, 110);
+            }
+
+            async function checkSystemStatus() {
+                try {
+                    const cfStatus = document.getElementById('cfStatus');
+                    const regionStatus = document.getElementById('regionStatus');
+                    const geoInfo = document.getElementById('geoInfo');
+                    const backupStatus = document.getElementById('backupStatus');
+                    const currentIP = document.getElementById('currentIP');
+                    const regionMatch = document.getElementById('regionMatch');
+
+                    // 获取当前语言设置（优先从Cookie/localStorage读取）
+                    function getCookie(name) {
+                        const value = '; ' + document.cookie;
+                        const parts = value.split('; ' + name + '=');
+                        if (parts.length === 2) return parts.pop().split(';').shift();
+                        return null;
+                    }
+
+                    const browserLang = navigator.language || navigator.userLanguage || '';
+                    const savedLang = localStorage.getItem('preferredLanguage') || getCookie('preferredLanguage');
+                    let isFarsi = false;
+
+                    if (savedLang === 'fa' || savedLang === 'fa-IR') {
+                        isFarsi = true;
+                    } else if (savedLang === 'zh' || savedLang === 'zh-CN') {
+                        isFarsi = false;
+                    } else {
+                        isFarsi = browserLang.includes('fa') || browserLang.includes('fa-IR');
+                    }
+
+                    const translations = {
+                        zh: {
+                            workerRegion: 'Worker地区: ',
+                            detectionMethod: '检测方式: ',
+                            proxyIPStatus: 'ProxyIP状态: ',
+                            currentIP: '当前使用IP: ',
+                            regionMatch: '地区匹配: ',
+                            regionNames: {
+                                'HK': '🇭🇰 香港', 'US': '🇺🇸 美国', 'SG': '🇸🇬 新加坡', 'JP': '🇯🇵 日本',
+                                'KR': '🇰🇷 韩国', 'DE': '🇩🇪 德国', 'SE': '🇸🇪 瑞典', 'NL': '🇳🇱 荷兰',
+                                'FI': '🇫🇮 芬兰', 'GB': '🇬🇧 英国'
+                            },
+                            customIPMode: '自定义ProxyIP模式 (p变量启用)',
+                            customIPModeDesc: '自定义IP模式 (已禁用地区匹配)',
+                            usingCustomProxyIP: '使用自定义ProxyIP: ',
+                            customIPConfig: ' (p变量配置)',
+                            customIPModeDisabled: '自定义IP模式，地区选择已禁用',
+                            manualRegion: '手动指定地区',
+                            manualRegionDesc: ' (手动指定)',
+                            proxyIPAvailable: '10/10 可用 (ProxyIP域名预设可用)',
+                            smartSelection: '智能就近选择中',
+                            sameRegionIP: '同地区IP可用 (1个)',
+                            cloudflareDetection: 'Cloudflare内置检测',
+                            detectionFailed: '检测失败',
+                            unknown: '未知'
+                        },
+                        fa: {
+                            workerRegion: 'منطقه Worker: ',
+                            detectionMethod: 'روش تشخیص: ',
+                            proxyIPStatus: 'وضعیت ProxyIP: ',
+                            currentIP: 'IP فعلی: ',
+                            regionMatch: 'تطبیق منطقه: ',
+                            regionNames: {
+                                'HK': '🇭🇰 هنگ کنگ', 'US': '🇺🇸 آمریکا', 'SG': '🇸🇬 سنگاپور', 'JP': '🇯🇵 ژاپن',
+                                'KR': '🇰🇷 کره جنوبی', 'DE': '🇩🇪 آلمان', 'SE': '🇸🇪 سوئد', 'NL': '🇳🇱 هلند',
+                                'FI': '🇫🇮 فنلاند', 'GB': '🇬🇧 بریتانیا'
+                            },
+                            customIPMode: 'حالت ProxyIP سفارشی (متغیر p فعال است)',
+                            customIPModeDesc: 'حالت IP سفارشی (تطبیق منطقه غیرفعال است)',
+                            usingCustomProxyIP: 'استفاده از ProxyIP سفارشی: ',
+                            customIPConfig: ' (پیکربندی متغیر p)',
+                            customIPModeDisabled: 'حالت IP سفارشی، انتخاب منطقه غیرفعال است',
+                            manualRegion: 'تعیین منطقه دستی',
+                            manualRegionDesc: ' (تعیین دستی)',
+                            proxyIPAvailable: '10/10 در دسترس (دامنه پیش‌فرض ProxyIP در دسترس است)',
+                            smartSelection: 'انتخاب هوشمند نزدیک در حال انجام است',
+                            sameRegionIP: 'IP هم‌منطقه در دسترس است (1)',
+                            cloudflareDetection: 'تشخیص داخلی Cloudflare',
+                            detectionFailed: 'تشخیص ناموفق',
+                            unknown: 'ناشناخته'
+                        }
+                    };
+
+                    const t = translations[isFarsi ? 'fa' : 'zh'];
+
+                    let detectedRegion = 'US'; // 默认值
+                    let isCustomIPMode = false;
+                    let isManualRegionMode = false;
+                    try {
+                        const response = await fetch(window.location.pathname + '/region');
+                        const data = await response.json();
+
+                        if (data.region === 'CUSTOM') {
+                            isCustomIPMode = true;
+                            detectedRegion = 'CUSTOM';
+
+                            // 获取自定义IP的详细信息
+                            const customIPInfo = data.ci || t.unknown;
+                            geoInfo.innerHTML = t.detectionMethod + '<span style="color: #ffb400;">⚙️ ' + t.customIPMode + '</span>';
+                            regionStatus.innerHTML = t.workerRegion + '<span style="color: #ffb400;">🔧 ' + t.customIPModeDesc + '</span>';
+
+                            // 显示自定义IP配置状态，包含具体IP
+                            if (backupStatus) backupStatus.innerHTML = t.proxyIPStatus + '<span style="color: #ffb400;">🔧 ' + t.usingCustomProxyIP + customIPInfo + '</span>';
+                            if (currentIP) currentIP.innerHTML = t.currentIP + '<span style="color: #ffb400;">✅ ' + customIPInfo + t.customIPConfig + '</span>';
+                            if (regionMatch) regionMatch.innerHTML = t.regionMatch + '<span style="color: #ffb400;">⚠️ ' + t.customIPModeDisabled + '</span>';
+
+                            return; // 提前返回，不执行后续的地区匹配逻辑
+                        } else if (data.detectionMethod === '手动指定地区' || data.detectionMethod === 'تعیین منطقه دستی') {
+                            isManualRegionMode = true;
+                            detectedRegion = data.region;
+
+                            geoInfo.innerHTML = t.detectionMethod + '<span style="color: #00b380;">' + t.manualRegion + '</span>';
+                            regionStatus.innerHTML = t.workerRegion + '<span style="color: #00ff9d;">🎯 ' + t.regionNames[detectedRegion] + t.manualRegionDesc + '</span>';
+
+                            // 显示配置状态而不是检测状态
+                            if (backupStatus) backupStatus.innerHTML = t.proxyIPStatus + '<span style="color: #00ff9d;">✅ ' + t.proxyIPAvailable + '</span>';
+                            if (currentIP) currentIP.innerHTML = t.currentIP + '<span style="color: #00ff9d;">✅ ' + t.smartSelection + '</span>';
+                            if (regionMatch) regionMatch.innerHTML = t.regionMatch + '<span style="color: #00ff9d;">✅ ' + t.sameRegionIP + '</span>';
+
+                            return; // 提前返回，不执行后续的地区匹配逻辑
+                        } else if (data.region && t.regionNames[data.region]) {
+                            detectedRegion = data.region;
+                    }
+
+                    geoInfo.innerHTML = t.detectionMethod + '<span style="color: #00ff9d;">' + t.cloudflareDetection + '</span>';
+
+                    } catch (e) {
+                        geoInfo.innerHTML = t.detectionMethod + '<span style="color: #ff3860;">' + t.detectionFailed + '</span>';
+                    }
+
+                    regionStatus.innerHTML = t.workerRegion + '<span style="color: #00ff9d;">✅ ' + t.regionNames[detectedRegion] + '</span>';
+
+                    // 直接显示配置状态，不再进行检测
+                    if (backupStatus) {
+                        backupStatus.innerHTML = t.proxyIPStatus + '<span style="color: #00ff9d;">✅ ' + t.proxyIPAvailable + '</span>';
+                    }
+
+                    if (currentIP) {
+                        currentIP.innerHTML = t.currentIP + '<span style="color: #00ff9d;">✅ ' + t.smartSelection + '</span>';
+                    }
+
+                    if (regionMatch) {
+                        regionMatch.innerHTML = t.regionMatch + '<span style="color: #00ff9d;">✅ ' + t.sameRegionIP + '</span>';
+                    }
+                } catch (error) {
+                    function getCookie(name) {
+                        const value = '; ' + document.cookie;
+                        const parts = value.split('; ' + name + '=');
+                        if (parts.length === 2) return parts.pop().split(';').shift();
+                        return null;
+                    }
+
+                    const browserLang = navigator.language || navigator.userLanguage || '';
+                    const savedLang = localStorage.getItem('preferredLanguage') || getCookie('preferredLanguage');
+                    let isFarsi = false;
+
+                    if (savedLang === 'fa' || savedLang === 'fa-IR') {
+                        isFarsi = true;
+                    } else {
+                        isFarsi = browserLang.includes('fa') || browserLang.includes('fa-IR');
+                    }
+
+                    const translations = {
+                        zh: {
+                            workerRegion: 'Worker地区: ',
+                            detectionMethod: '检测方式: ',
+                            proxyIPStatus: 'ProxyIP状态: ',
+                            currentIP: '当前使用IP: ',
+                            regionMatch: '地区匹配: ',
+                            detectionFailed: '检测失败'
+                        },
+                        fa: {
+                            workerRegion: 'منطقه Worker: ',
+                            detectionMethod: 'روش تشخیص: ',
+                            proxyIPStatus: 'وضعیت ProxyIP: ',
+                            currentIP: 'IP فعلی: ',
+                            regionMatch: 'تطبیق منطقه: ',
+                            detectionFailed: 'تشخیص ناموفق'
+                        }
+                    };
+
+                    const t = translations[isFarsi ? 'fa' : 'zh'];
+
+                    document.getElementById('regionStatus').innerHTML = t.workerRegion + '<span style="color: #ff3860;">❌ ' + t.detectionFailed + '</span>';
+                    document.getElementById('geoInfo').innerHTML = t.detectionMethod + '<span style="color: #ff3860;">❌ ' + t.detectionFailed + '</span>';
+                    document.getElementById('backupStatus').innerHTML = t.proxyIPStatus + '<span style="color: #ff3860;">❌ ' + t.detectionFailed + '</span>';
+                    document.getElementById('currentIP').innerHTML = t.currentIP + '<span style="color: #ff3860;">❌ ' + t.detectionFailed + '</span>';
+                    document.getElementById('regionMatch').innerHTML = t.regionMatch + '<span style="color: #ff3860;">❌ ' + t.detectionFailed + '</span>';
+                }
+            }
+
+            async function testAPI() {
+                try {
+                    function getCookie(name) {
+                        const value = '; ' + document.cookie;
+                        const parts = value.split('; ' + name + '=');
+                        if (parts.length === 2) return parts.pop().split(';').shift();
+                        return null;
+                    }
+
+                    const browserLang = navigator.language || navigator.userLanguage || '';
+                    const savedLang = localStorage.getItem('preferredLanguage') || getCookie('preferredLanguage');
+                    let isFarsi = false;
+
+                    if (savedLang === 'fa' || savedLang === 'fa-IR') {
+                        isFarsi = true;
+                    } else {
+                        isFarsi = browserLang.includes('fa') || browserLang.includes('fa-IR');
+                    }
+
+                    const translations = {
+                        zh: {
+                            apiTestResult: 'API检测结果: ',
+                            apiTestTime: '检测时间: ',
+                            apiTestFailed: 'API检测失败: ',
+                            unknownError: '未知错误',
+                            apiTestError: 'API测试失败: '
+                        },
+                        fa: {
+                            apiTestResult: 'نتیجه تشخیص API: ',
+                            apiTestTime: 'زمان تشخیص: ',
+                            apiTestFailed: 'تشخیص API ناموفق: ',
+                            unknownError: 'خطای ناشناخته',
+                            apiTestError: 'تست API ناموفق: '
+                        }
+                    };
+
+                    const t = translations[isFarsi ? 'fa' : 'zh'];
+
+                    const response = await fetch(window.location.pathname + '/test-api');
+                    const data = await response.json();
+
+                    if (data.detectedRegion) {
+                        cpToast(t.apiTestResult + data.detectedRegion + '\\n' + t.apiTestTime + data.timestamp, 'info', { duration: 5000 });
+                    } else {
+                        cpToast(t.apiTestFailed + (data.error || t.unknownError), 'error', { duration: 4500 });
+                    }
+                } catch (error) {
+                    function getCookie(name) {
+                        const value = '; ' + document.cookie;
+                        const parts = value.split('; ' + name + '=');
+                        if (parts.length === 2) return parts.pop().split(';').shift();
+                        return null;
+                    }
+
+                    const browserLang = navigator.language || navigator.userLanguage || '';
+                    const savedLang = localStorage.getItem('preferredLanguage') || getCookie('preferredLanguage');
+                    let isFarsi = false;
+
+                    if (savedLang === 'fa' || savedLang === 'fa-IR') {
+                        isFarsi = true;
+                    } else {
+                        isFarsi = browserLang.includes('fa') || browserLang.includes('fa-IR');
+                    }
+
+                    const translations = {
+                        zh: { apiTestError: 'API测试失败: ' },
+                        fa: { apiTestError: 'تست API ناموفق: ' }
+                    };
+
+                    const t = translations[isFarsi ? 'fa' : 'zh'];
+                    cpToast(t.apiTestError + error.message, 'error', { duration: 4500 });
+                }
+            }
+            
+            // 配置管理相关函数
+            async function checkKVStatus() {
+                const apiUrl = window.location.pathname + '/api/config';
+                try {
+                    const response = await fetch(apiUrl);
+                    function getCookie(name) {
+                        const value = '; ' + document.cookie;
+                        const parts = value.split('; ' + name + '=');
+                        if (parts.length === 2) return parts.pop().split(';').shift();
+                        return null;
+                    }
+
+                    const browserLang = navigator.language || navigator.userLanguage || '';
+                    const savedLang = localStorage.getItem('preferredLanguage') || getCookie('preferredLanguage');
+                    let isFarsi = false;
+
+                    if (savedLang === 'fa' || savedLang === 'fa-IR') {
+                        isFarsi = true;
+                    } else {
+                        isFarsi = browserLang.includes('fa') || browserLang.includes('fa-IR');
+                    }
+
+                    const translations = {
+                        zh: {
+                            kvDisabled: '⚠️ KV存储未启用或未配置',
+                            kvNotConfigured: 'KV存储未配置，无法使用配置管理功能。\\n\\n请在Cloudflare Workers中:\\n1. 创建KV命名空间\\n2. 绑定环境变量 C\\n3. 重新部署代码',
+                            kvNotEnabled: 'KV存储未配置',
+                            kvEnabled: '✅ KV存储已启用，可以使用配置管理功能',
+                            kvCheckFailed: '⚠️ KV存储检测失败',
+                            kvCheckFailedFormat: 'KV存储检测失败: 响应格式错误',
+                            kvCheckFailedStatus: 'KV存储检测失败 - 状态码: ',
+                            kvCheckFailedError: 'KV存储检测失败 - 错误: '
+                        },
+                        fa: {
+                            kvDisabled: '⚠️ ذخیره‌سازی KV فعال نیست یا پیکربندی نشده است',
+                            kvNotConfigured: 'ذخیره‌سازی KV پیکربندی نشده است، نمی‌توانید از عملکرد مدیریت تنظیمات استفاده کنید.\\n\\nلطفا در Cloudflare Workers:\\n1. فضای نام KV ایجاد کنید\\n2. متغیر محیطی C را پیوند دهید\\n3. کد را دوباره مستقر کنید',
+                            kvNotEnabled: 'ذخیره‌سازی KV پیکربندی نشده است',
+                            kvEnabled: '✅ ذخیره‌سازی KV فعال است، می‌توانید از مدیریت تنظیمات استفاده کنید',
+                            kvCheckFailed: '⚠️ بررسی ذخیره‌سازی KV ناموفق',
+                            kvCheckFailedFormat: 'بررسی ذخیره‌سازی KV ناموفق: خطای فرمت پاسخ',
+                            kvCheckFailedStatus: 'بررسی ذخیره‌سازی KV ناموفق - کد وضعیت: ',
+                            kvCheckFailedError: 'بررسی ذخیره‌سازی KV ناموفق - خطا: '
+                        }
+                    };
+
+                    const t = translations[isFarsi ? 'fa' : 'zh'];
+
+                    if (response.status === 503) {
+                        // KV未配置
+                        document.getElementById('kvStatus').innerHTML = '<span style="color: #ffb400;">' + t.kvDisabled + '</span>';
+                        document.getElementById('configCard').style.display = 'block';
+                        document.getElementById('currentConfig').textContent = t.kvNotConfigured;
+                    } else if (response.ok) {
+                        try {
+                        const data = await response.json();
+
+                        // 检查响应是否包含KV配置信息
+                        if (data && data.kvEnabled === true) {
+                            document.getElementById('kvStatus').innerHTML = '<span style="color: #00ff9d;">' + t.kvEnabled + '</span>';
+                            document.getElementById('configContent').style.display = 'block';
+                            document.getElementById('configCard').style.display = 'block';
+                            await loadCurrentConfig();
+                        } else {
+                            document.getElementById('kvStatus').innerHTML = '<span style="color: #ffb400;">' + t.kvDisabled + '</span>';
+                            document.getElementById('configCard').style.display = 'block';
+                            document.getElementById('currentConfig').textContent = t.kvNotEnabled;
+                        }
+                    } catch (jsonError) {
+                        document.getElementById('kvStatus').innerHTML = '<span style="color: #ffb400;">' + t.kvCheckFailed + '</span>';
+                        document.getElementById('configCard').style.display = 'block';
+                        document.getElementById('currentConfig').textContent = t.kvCheckFailedFormat;
+                        }
+                    } else {
+                        document.getElementById('kvStatus').innerHTML = '<span style="color: #ffb400;">' + t.kvDisabled + '</span>';
+                        document.getElementById('configCard').style.display = 'block';
+                        document.getElementById('currentConfig').textContent = t.kvCheckFailedStatus + response.status;
+                    }
+                } catch (error) {
+                    function getCookie(name) {
+                        const value = '; ' + document.cookie;
+                        const parts = value.split('; ' + name + '=');
+                        if (parts.length === 2) return parts.pop().split(';').shift();
+                        return null;
+                    }
+
+                    const browserLang = navigator.language || navigator.userLanguage || '';
+                    const savedLang = localStorage.getItem('preferredLanguage') || getCookie('preferredLanguage');
+                    let isFarsi = false;
+
+                    if (savedLang === 'fa' || savedLang === 'fa-IR') {
+                        isFarsi = true;
+                    } else {
+                        isFarsi = browserLang.includes('fa') || browserLang.includes('fa-IR');
+                    }
+
+                    const translations = {
+                        zh: {
+                            kvDisabled: '⚠️ KV存储未启用或未配置',
+                            kvCheckFailedError: 'KV存储检测失败 - 错误: '
+                        },
+                        fa: {
+                            kvDisabled: '⚠️ ذخیره‌سازی KV فعال نیست یا پیکربندی نشده است',
+                            kvCheckFailedError: 'بررسی ذخیره‌سازی KV ناموفق - خطا: '
+                        }
+                    };
+
+                    const t = translations[isFarsi ? 'fa' : 'zh'];
+
+                    document.getElementById('kvStatus').innerHTML = '<span style="color: #ffb400;">' + t.kvDisabled + '</span>';
+                    document.getElementById('configCard').style.display = 'block';
+                    document.getElementById('currentConfig').textContent = t.kvCheckFailedError + error.message;
+                }
+            }
+
+            async function loadCurrentConfig() {
+                const apiUrl = window.location.pathname + '/api/config';
+                try {
+                    const response = await fetch(apiUrl);
+
+                    if (response.status === 503) {
+                        document.getElementById('currentConfig').textContent = 'KV存储未配置，无法加载配置';
+                        return;
+                    }
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        document.getElementById('currentConfig').textContent = '加载配置失败: ' + errorText;
+                        return;
+                    }
+                    const config = await response.json();
+
+                    // 过滤掉内部字段 kvEnabled
+                    const displayConfig = {};
+                    for (const [key, value] of Object.entries(config)) {
+                        if (key !== 'kvEnabled') {
+                            displayConfig[key] = value;
+                        }
+                    }
+
+                    let configText = '当前配置:\\n';
+                    if (Object.keys(displayConfig).length === 0) {
+                        configText += '(暂无配置)';
+                    } else {
+                        for (const [key, value] of Object.entries(displayConfig)) {
+                            configText += key + ': ' + (value || '(未设置)') + '\\n';
+                        }
+                    }
+
+                    document.getElementById('currentConfig').textContent = configText;
+
+                    // 更新表单值
+                    document.getElementById('wkRegion').value = config.wk || '';
+                    document.getElementById('ev').checked = config.ev !== 'no';
+                    document.getElementById('et').checked = config.et === 'yes';
+                    document.getElementById('ex').checked = config.ex === 'yes';
+                    document.getElementById('ech').checked = config.ech === 'yes';
+                    document.getElementById('tp').value = config.tp || '';
+                    if (document.getElementById('customDNS')) {
+                        document.getElementById('customDNS').value = config.customDNS || '';
+                    }
+                    if (document.getElementById('customECHDomain')) {
+                        document.getElementById('customECHDomain').value = config.customECHDomain || '';
+                    }
+                    if (document.getElementById('alpn')) {
+                        document.getElementById('alpn').value = config.alpn || '';
+                    }
+                    document.getElementById('scu').value = config.scu || '';
+                    document.getElementById('ena').checked = config.ena === 'yes';
+                    document.getElementById('epd').checked = config.epd !== 'no';
+                    document.getElementById('epi').checked = config.epi !== 'no';
+                    document.getElementById('egi').checked = config.egi !== 'no';
+                    if (document.getElementById('ipv4Enabled')) document.getElementById('ipv4Enabled').checked = config.ipv4 !== 'no';
+                    if (document.getElementById('ipv6Enabled')) document.getElementById('ipv6Enabled').checked = config.ipv6 !== 'no';
+                    if (document.getElementById('ispMobile')) document.getElementById('ispMobile').checked = config.ispMobile !== 'no';
+                    if (document.getElementById('ispUnicom')) document.getElementById('ispUnicom').checked = config.ispUnicom !== 'no';
+                    if (document.getElementById('ispTelecom')) document.getElementById('ispTelecom').checked = config.ispTelecom !== 'no';
+                    document.getElementById('customPath').value = config.d || '';
+                    document.getElementById('customIP').value = config.p || '';
+                    document.getElementById('yx').value = config.yx || '';
+                    document.getElementById('yxURL').value = config.yxURL || '';
+                    document.getElementById('socksConfig').value = config.s || '';
+                    document.getElementById('customHomepage').value = config.homepage || '';
+                    document.getElementById('apiEnabled').value = config.ae || '';
+                    document.getElementById('regionMatching').value = config.rm || '';
+                    document.getElementById('downgradeControl').value = config.qj || '';
+                    document.getElementById('portControl').value = config.dkby || '';
+                    document.getElementById('preferredControl').value = config.yxby || '';
+
+                    // 更新路径类型显示
+                    updatePathTypeStatus(config.d);
+
+                    // 检查p变量，如果有值则禁用wk地区选择
+                    updateWkRegionState();
+
+                } catch (error) {
+                    document.getElementById('currentConfig').textContent = '加载配置失败: ' + error.message;
+                }
+            }
+
+            // 更新路径类型显示
+            function updatePathTypeStatus(cp) {
+                const pathTypeStatus = document.getElementById('pathTypeStatus');
+                const currentUrl = window.location.href;
+                const pathParts = window.location.pathname.split('/').filter(p => p);
+                const currentPath = pathParts.length > 0 ? pathParts[0] : '';
+
+                if (cp && cp.trim()) {
+                    // 使用自定义路径 (d)
+                    pathTypeStatus.innerHTML = '<div style="color: #00ff9d;">使用类型: <strong>自定义路径 (d)</strong></div>' +
+                        '<div style="margin-top: 5px; color: #00f0ff;">当前路径: <span style="color: #ffb400;">' + cp + '</span></div>' +
+                        '<div style="margin-top: 5px; font-size: 0.9rem; color: #7aa9c4;">访问地址: ' + 
+                        (currentUrl.split('/')[0] + '//' + currentUrl.split('/')[2]) + cp + '/sub</div>';
+                } else {
+                    // 使用 UUID (u)
+                    pathTypeStatus.innerHTML = '<div style="color: #00ff9d;">使用类型: <strong>UUID 路径 (u)</strong></div>' +
+                        '<div style="margin-top: 5px; color: #00f0ff;">当前路径: <span style="color: #ffb400;">' + (currentPath || '(UUID)') + '</span></div>' +
+                        '<div style="margin-top: 5px; font-size: 0.9rem; color: #7aa9c4;">访问地址: ' + currentUrl.split('/sub')[0] + '/sub</div>';
+                }
+            }
+
+            // 更新wk地区选择的启用/禁用状态
+            function updateWkRegionState() {
+                const customIPInput = document.getElementById('customIP');
+                const wkRegion = document.getElementById('wkRegion');
+                const wkRegionHint = document.getElementById('wkRegionHint');
+
+                if (customIPInput && wkRegion) {
+                    const hasCustomIP = customIPInput.value.trim() !== '';
+                    wkRegion.disabled = hasCustomIP;
+
+                    // 添加视觉反馈
+                    if (hasCustomIP) {
+                        wkRegion.style.opacity = '0.5';
+                        wkRegion.style.cursor = 'not-allowed';
+                        wkRegion.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                        // 显示提示信息
+                        if (wkRegionHint) {
+                            wkRegionHint.style.display = 'block';
+                            wkRegionHint.style.color = '#ffb400';
+                        }
+                    } else {
+                        wkRegion.style.opacity = '1';
+                        wkRegion.style.cursor = 'pointer';
+                        wkRegion.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                        // 隐藏提示信息
+                        if (wkRegionHint) {
+                            wkRegionHint.style.display = 'none';
+                        }
+                    }
+                }
+            }
+
+            async function saveConfig(configData) {
+                const apiUrl = window.location.pathname + '/api/config';
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(configData)
+                    });
+
+                    if (response.status === 503) {
+                        showStatus('KV存储未配置，无法保存配置。请先在Cloudflare Workers中配置KV存储。', 'error');
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+
+                        // 尝试解析 JSON 错误信息
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            showStatus(errorData.message || '保存失败', 'error');
+                        } catch (parseError) {
+                            // 如果不是 JSON，直接显示文本
+                            showStatus('保存失败: ' + errorText, 'error');
+                        }
+                        return;
+                    }
+
+                    const result = await response.json();
+
+                    showStatus(result.message, result.success ? 'success' : 'error');
+
+                    if (result.success) {
+                        await loadCurrentConfig();
+                        // 更新wk地区选择状态
+                        updateWkRegionState();
+                        // 保存成功后刷新页面以更新系统状态
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                    }
+                } catch (error) {
+                    showStatus('保存失败: ' + error.message, 'error');
+                }
+            }
+
+            function showStatus(message, type) {
+                const statusDiv = document.getElementById('statusMessage');
+                if (statusDiv) {
+                    statusDiv.textContent = message;
+                    statusDiv.style.display = 'block';
+                    statusDiv.style.color = type === 'success' ? '#00f0ff' : '#ff3860';
+                    statusDiv.style.borderColor = type === 'success' ? '#00f0ff' : '#ff3860';
+
+                    setTimeout(function() {
+                        statusDiv.style.display = 'none';
+                    }, 3000);
+                }
+                // 同步在底部操作条上方弹出霓虹反馈
+                if (typeof window.flashActionStatus === 'function') {
+                    window.flashActionStatus(message, type === 'success' ? 'ok' : 'err');
+                }
+            }
+
+            async function resetAllConfig() {
+                if (confirm('确定要重置所有配置吗？这将清空所有KV配置，恢复为环境变量设置。')) {
+                    try {
+                        const response = await fetch(window.location.pathname + '/api/config', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                wk: '',
+                                d: '',
+                                p: '',
+                                yx: '',
+                                yxURL: '',
+                                s: '', ae: '',
+                                rm: '',
+                                qj: '',
+                                dkby: '',
+                                yxby: '', ev: '', et: '', ex: '', tp: '', scu: '', epd: '', epi: '', egi: '',
+                                ipv4: '', ipv6: '', ispMobile: '', ispUnicom: '', ispTelecom: '',
+                                homepage: '',
+                                alpn: ''
+                            })
+                        });
+
+                        if (response.status === 503) {
+                            showStatus('KV存储未配置，无法重置配置。', 'error');
+                            return;
+                        }
+
+                        if (!response.ok) {
+                            const errorText = await response.text();
+
+                            // 尝试解析 JSON 错误信息
+                            try {
+                                const errorData = JSON.parse(errorText);
+                                showStatus(errorData.message || '重置失败', 'error');
+                            } catch (parseError) {
+                                // 如果不是 JSON，直接显示文本
+                                showStatus('重置失败: ' + errorText, 'error');
+                            }
+                            return;
+                        }
+
+                        const result = await response.json();
+                        showStatus(result.message || '配置已重置', result.success ? 'success' : 'error');
+
+                        if (result.success) {
+                            await loadCurrentConfig();
+                            // 更新wk地区选择状态
+                            updateWkRegionState();
+                            // 刷新页面以更新系统状态
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
+                        }
+                    } catch (error) {
+                        showStatus('重置失败: ' + error.message, 'error');
+                    }
+                }
+            }
+
+            async function checkECHStatus() {
+                const echStatusEl = document.getElementById('echStatus');
+
+                if (!echStatusEl) return;
+
+                try {
+                    const currentUrl = window.location.href;
+                    const subscriptionUrl = currentUrl + '/sub';
+
+                    echStatusEl.innerHTML = 'ECH状态: <span style="color: #ffb400;">检测中...</span>';
+
+                    const response = await fetch(subscriptionUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'text/plain'
+                        }
+                    });
+
+                    const echStatusHeader = response.headers.get('X-ECH-Status');
+                    const echConfigLength = response.headers.get('X-ECH-Config-Length');
+
+                    if (echStatusHeader === 'ENABLED') {
+                        echStatusEl.innerHTML = 'ECH状态: <span style="color: #00ff9d;">✅ 已启用' + (echConfigLength ? ' (配置长度: ' + echConfigLength + ')' : '') + '</span>';
+                    } else {
+                        echStatusEl.innerHTML = 'ECH状态: <span style="color: #ffb400;">⚠️ 未启用</span>';
+                    }
+                } catch (error) {
+                    echStatusEl.innerHTML = 'ECH状态: <span style="color: #ff3860;">❌ 检测失败: ' + error.message + '</span>';
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                createMatrixRain();
+                checkSystemStatus();
+                checkKVStatus();
+                checkECHStatus();
+
+                // ECH 开启时自动联动开启仅TLS
+                const echCheckbox = document.getElementById('ech');
+                const portControl = document.getElementById('portControl');
+                if (echCheckbox && portControl) {
+                    echCheckbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            // ECH 开启时，自动设置仅TLS为 yes
+                            portControl.value = 'yes';
+                        }
+                    });
+
+                    // 页面加载时，如果 ECH 已勾选，也自动设置仅TLS
+                    if (echCheckbox.checked) {
+                        portControl.value = 'yes';
+                    }
+                }
+
+                // 监听customIP输入框变化，实时更新wk地区选择状态
+                const customIPInput = document.getElementById('customIP');
+                if (customIPInput) {
+                    customIPInput.addEventListener('input', function() {
+                        updateWkRegionState();
+                    });
+                }
+
+                // 阻止表单默认提交（保存按钮已统一到底部操作条）
+                ['regionForm', 'otherConfigForm', 'advancedConfigForm'].forEach(function(fid) {
+                    const f = document.getElementById(fid);
+                    if (f) f.addEventListener('submit', function(e) { e.preventDefault(); });
+                });
+
+                // 在任意输入框按下回车，触发统一保存
+                document.querySelectorAll('#configContent input[type="text"], #configContent input[type="number"]').forEach(function(el) {
+                    el.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            saveAllConfig();
+                        }
+                    });
+                });
+
+                // 统一保存：一次性收齐所有字段
+                function collectAllConfig() {
+                    function val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+                    function chk(id, def) { const el = document.getElementById(id); if (!el) return def; return el.checked ? 'yes' : 'no'; }
+                    return {
+                        wk: val('wkRegion'),
+                        ev: chk('ev', 'yes'), et: chk('et', 'no'), ex: chk('ex', 'no'), ech: chk('ech', 'no'),
+                        tp: val('tp'),
+                        customDNS: val('customDNS'),
+                        customECHDomain: val('customECHDomain'),
+                        alpn: val('alpn'),
+                        d: val('customPath'),
+                        p: val('customIP'),
+                        yx: val('yx'),
+                        yxURL: val('yxURL'),
+                        s: val('socksConfig'),
+                        homepage: val('customHomepage'),
+                        scu: val('scu'),
+                        ena: chk('ena', 'no'),
+                        epd: chk('epd', 'yes'), epi: chk('epi', 'yes'), egi: chk('egi', 'yes'),
+                        ae: val('apiEnabled'),
+                        rm: val('regionMatching'),
+                        qj: val('downgradeControl'),
+                        dkby: val('portControl'),
+                        yxby: val('preferredControl'),
+                        ipv4: chk('ipv4Enabled', 'yes'), ipv6: chk('ipv6Enabled', 'yes'),
+                        ispMobile: chk('ispMobile', 'yes'), ispUnicom: chk('ispUnicom', 'yes'), ispTelecom: chk('ispTelecom', 'yes')
+                    };
+                }
+
+                async function saveAllConfig() {
+                    // 至少启用一个协议
+                    const evEl = document.getElementById('ev'), etEl = document.getElementById('et'), exEl = document.getElementById('ex');
+                    if (evEl && etEl && exEl && !evEl.checked && !etEl.checked && !exEl.checked) {
+                        flashActionStatus('${isFarsi ? 'حداقل یک پروتکل را فعال کنید!' : '至少需要启用一个协议！'}', 'err');
+                        cpToast('${isFarsi ? 'حداقل یک پروتکل را فعال کنید!' : '至少需要启用一个协议！'}', 'warn');
+                        return;
+                    }
+                    const btn = document.getElementById('cpBtnSaveAll');
+                    if (btn) { btn.classList.add('cp-action-btn-saving'); btn.disabled = true; }
+                    try {
+                        await saveConfig(collectAllConfig());
+                    } finally {
+                        if (btn) { btn.classList.remove('cp-action-btn-saving'); btn.disabled = false; }
+                    }
+                }
+                window.saveAllConfig = saveAllConfig;
+
+                function flashActionStatus(msg, type) {
+                    const el = document.getElementById('cpActionStatus');
+                    if (!el) return;
+                    el.textContent = msg;
+                    el.classList.toggle('cp-err', type === 'err');
+                    el.classList.add('cp-show');
+                    clearTimeout(flashActionStatus._t);
+                    flashActionStatus._t = setTimeout(function() {
+                        el.classList.remove('cp-show');
+                    }, 2400);
+                }
+                window.flashActionStatus = flashActionStatus;
+
+                // 绑定底部统一操作条
+                const cpActionBar = document.getElementById('cpActionBar');
+                const cpBtnSaveAll = document.getElementById('cpBtnSaveAll');
+                if (cpBtnSaveAll) cpBtnSaveAll.addEventListener('click', async function() {
+                    cpBtnSaveAll.classList.add('cp-action-btn-saving');
+                    try {
+                        await saveAllConfig();
+                        if (cpActionBar) cpActionBar.classList.remove('cp-dirty');
+                    } finally {
+                        cpBtnSaveAll.classList.remove('cp-action-btn-saving');
+                    }
+                });
+                const cpBtnRefresh = document.getElementById('cpBtnRefresh');
+                if (cpBtnRefresh) cpBtnRefresh.addEventListener('click', async function() {
+                    cpBtnRefresh.classList.add('cp-action-btn-saving');
+                    try {
+                        await loadCurrentConfig();
+                        if (cpActionBar) cpActionBar.classList.remove('cp-dirty');
+                        flashActionStatus('${isFarsi ? 'تنظیمات تازه‌سازی شد' : '配置已刷新'}');
+                    } finally {
+                        cpBtnRefresh.classList.remove('cp-action-btn-saving');
+                    }
+                });
+                const cpBtnReset = document.getElementById('cpBtnReset');
+                if (cpBtnReset) cpBtnReset.addEventListener('click', resetAllConfig);
+
+                // 修改字段时把 FAB 标记为 "未保存"
+                function markDirty() {
+                    if (cpActionBar) cpActionBar.classList.add('cp-dirty');
+                }
+                const dirtyScope = document.getElementById('configContent') || document;
+                ['input', 'change'].forEach(function(evt) {
+                    dirtyScope.addEventListener(evt, function(e) {
+                        const tgt = e.target;
+                        if (!tgt || !tgt.tagName) return;
+                        const tag = tgt.tagName.toLowerCase();
+                        if (tag === 'input' || tag === 'select' || tag === 'textarea') {
+                            // 跳过延迟测试相关输入，避免误触
+                            if (tgt.id && /^(latencyTestInput|fetchURLInput|latencyTestPort|randomIPCount|testThreads|ipSourceSelect)$/.test(tgt.id)) return;
+                            markDirty();
+                        }
+                    });
+                });
+
+                // Ctrl+S / Cmd+S 触发保存
+                window.addEventListener('keydown', function(e) {
+                    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+                        e.preventDefault();
+                        if (cpBtnSaveAll && !cpBtnSaveAll.classList.contains('cp-action-btn-saving')) {
+                            cpBtnSaveAll.click();
+                        }
+                    }
+                });
+
+                let testAbortController = null;
+                let testResults = [];
+
+                const startTestBtn = document.getElementById('startLatencyTest');
+                const stopTestBtn = document.getElementById('stopLatencyTest');
+                const testStatus = document.getElementById('latencyTestStatus');
+                const testResultsDiv = document.getElementById('latencyTestResults');
+                const resultsList = document.getElementById('latencyResultsList');
+                const overwriteSelectedBtn = document.getElementById('overwriteSelectedToYx');
+                const appendSelectedBtn = document.getElementById('appendSelectedToYx');
+                const selectAllBtn = document.getElementById('selectAllResults');
+                const deselectAllBtn = document.getElementById('deselectAllResults');
+                const ipSourceSelect = document.getElementById('ipSourceSelect');
+                const manualInputDiv = document.getElementById('manualInputDiv');
+                const urlFetchDiv = document.getElementById('urlFetchDiv');
+                const latencyTestInput = document.getElementById('latencyTestInput');
+                const fetchURLInput = document.getElementById('fetchURLInput');
+                const latencyTestPort = document.getElementById('latencyTestPort');
+                const randomIPCount = document.getElementById('randomIPCount');
+                const cfRandomDiv = document.getElementById('cfRandomDiv');
+                const randomCountDiv = document.getElementById('randomCountDiv');
+                const generateCFIPBtn = document.getElementById('generateCFIPBtn');
+                const fetchIPBtn = document.getElementById('fetchIPBtn');
+
+                if (latencyTestInput) {
+                    const savedTestInput = localStorage.getItem('latencyTestInput');
+                    if (savedTestInput) latencyTestInput.value = savedTestInput;
+                    latencyTestInput.addEventListener('input', function() {
+                        localStorage.setItem('latencyTestInput', this.value);
+                    });
+                }
+                if (fetchURLInput) {
+                    const savedFetchURL = localStorage.getItem('fetchURLInput');
+                    if (savedFetchURL) fetchURLInput.value = savedFetchURL;
+                    fetchURLInput.addEventListener('input', function() {
+                        localStorage.setItem('fetchURLInput', this.value);
+                    });
+                }
+                if (latencyTestPort) {
+                    const savedPort = localStorage.getItem('latencyTestPort');
+                    if (savedPort) latencyTestPort.value = savedPort;
+                    latencyTestPort.addEventListener('input', function() {
+                        localStorage.setItem('latencyTestPort', this.value);
+                    });
+                }
+                if (randomIPCount) {
+                    const savedCount = localStorage.getItem('randomIPCount');
+                    if (savedCount) randomIPCount.value = savedCount;
+                    randomIPCount.addEventListener('input', function() {
+                        localStorage.setItem('randomIPCount', this.value);
+                    });
+                    // 初始化时，如果默认是隐藏的，则禁用输入框
+                    if (randomCountDiv && randomCountDiv.style.display === 'none') {
+                        randomIPCount.disabled = true;
+                    }
+                }
+                const testThreadsInput = document.getElementById('testThreads');
+                if (testThreadsInput) {
+                    const savedThreads = localStorage.getItem('testThreads');
+                    if (savedThreads) testThreadsInput.value = savedThreads;
+                    testThreadsInput.addEventListener('input', function() {
+                        localStorage.setItem('testThreads', this.value);
+                    });
+                }
+                if (ipSourceSelect) {
+                    const savedSource = localStorage.getItem('ipSourceSelect');
+                    const currentSource = savedSource || ipSourceSelect.value || 'manual';
+                    if (savedSource) {
+                        ipSourceSelect.value = savedSource;
+                    }
+                    manualInputDiv.style.display = currentSource === 'manual' ? 'block' : 'none';
+                    urlFetchDiv.style.display = currentSource === 'urlFetch' ? 'block' : 'none';
+                    cfRandomDiv.style.display = currentSource === 'cfRandom' ? 'block' : 'none';
+                    randomCountDiv.style.display = currentSource === 'cfRandom' ? 'block' : 'none';
+                    // 当隐藏时禁用输入框，避免表单验证错误
+                    if (randomIPCount) {
+                        randomIPCount.disabled = currentSource !== 'cfRandom';
+                    }
+                }
+
+                const CF_CIDR_LIST = [
+                    '173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22',
+                    '141.101.64.0/18', '108.162.192.0/18', '190.93.240.0/20', '188.114.96.0/20',
+                    '197.234.240.0/22', '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/13',
+                    '104.24.0.0/14', '172.64.0.0/13', '131.0.72.0/22'
+                ];
+
+                function generateRandomIPFromCIDR(cidr) {
+                    const [baseIP, prefixLength] = cidr.split('/');
+                    const prefix = parseInt(prefixLength);
+                    const hostBits = 32 - prefix;
+                    const ipParts = baseIP.split('.').map(p => parseInt(p));
+                    const ipInt = (ipParts[0] << 24) | (ipParts[1] << 16) | (ipParts[2] << 8) | ipParts[3];
+                    const randomOffset = Math.floor(Math.random() * Math.pow(2, hostBits));
+                    const mask = (0xFFFFFFFF << hostBits) >>> 0;
+                    const randomIP = (((ipInt & mask) >>> 0) + randomOffset) >>> 0;
+                    return [(randomIP >>> 24) & 0xFF, (randomIP >>> 16) & 0xFF, (randomIP >>> 8) & 0xFF, randomIP & 0xFF].join('.');
+                }
+
+                function generateCFRandomIPs(count, port) {
+                    const ips = [];
+                    for (let i = 0; i < count; i++) {
+                        const cidr = CF_CIDR_LIST[Math.floor(Math.random() * CF_CIDR_LIST.length)];
+                        const ip = generateRandomIPFromCIDR(cidr);
+                        ips.push(ip + ':' + port);
+                    }
+                    return ips;
+                }
+
+                if (ipSourceSelect) {
+                    ipSourceSelect.addEventListener('change', function() {
+                        const value = this.value;
+                        localStorage.setItem('ipSourceSelect', value);
+                        manualInputDiv.style.display = value === 'manual' ? 'block' : 'none';
+                        urlFetchDiv.style.display = value === 'urlFetch' ? 'block' : 'none';
+                        cfRandomDiv.style.display = value === 'cfRandom' ? 'block' : 'none';
+                        randomCountDiv.style.display = value === 'cfRandom' ? 'block' : 'none';
+                        // 当隐藏时禁用输入框，避免表单验证错误
+                        if (randomIPCount) {
+                            randomIPCount.disabled = value !== 'cfRandom';
+                        }
+                    });
+                }
+
+                if (generateCFIPBtn) {
+                    generateCFIPBtn.addEventListener('click', function() {
+                        const count = parseInt(document.getElementById('randomIPCount').value) || 20;
+                        const port = document.getElementById('latencyTestPort').value || '443';
+                        const ips = generateCFRandomIPs(count, port);
+                        document.getElementById('latencyTestInput').value = ips.join(',');
+                        manualInputDiv.style.display = 'block';
+                        showStatus('${isFarsi ? 'تولید شد' : '已生成'} ' + count + ' ${isFarsi ? 'IP تصادفی CF' : '个CF随机IP'}', 'success');
+                    });
+                }
+
+                if (fetchIPBtn) {
+                    fetchIPBtn.addEventListener('click', async function() {
+                        const urlInput = document.getElementById('fetchURLInput');
+                        const fetchUrl = urlInput.value.trim();
+                        if (!fetchUrl) {
+                            cpToast('${isFarsi ? 'لطفا URL را وارد کنید' : '请输入URL'}', 'warn');
+                            return;
+                        }
+
+                        fetchIPBtn.disabled = true;
+                        fetchIPBtn.textContent = '${isFarsi ? 'در حال دریافت...' : '获取中...'}';
+
+                        try {
+                            // 支持多个 URL（逗号分隔）以及返回内容中逗号分隔的多个 IP/节点
+                            const urlList = Array.from(new Set(
+                                fetchUrl.split(',').map(u => u.trim()).filter(u => u)
+                            ));
+
+                            const allItems = [];
+
+                            for (const u of urlList) {
+                                const response = await fetch(u);
+                                if (!response.ok) {
+                                    throw new Error('HTTP ' + response.status + ' @ ' + u);
+                                }
+                                const text = await response.text();
+
+                                // 先按行分割，再在每行内按逗号分割，兼容“多行 + 逗号分隔”两种格式
+                                const perUrlItems = text
+                                    .split(/\\r?\\n/)
+                                    .map(l => l.trim())
+                                    .filter(l => l && !l.startsWith('#'))
+                                    .flatMap(l => l.split(',').map(p => p.trim()).filter(p => p));
+
+                                allItems.push(...perUrlItems);
+                            }
+
+                            if (allItems.length > 0) {
+                                document.getElementById('latencyTestInput').value = allItems.join(',');
+                                manualInputDiv.style.display = 'block';
+                                showStatus('${isFarsi ? 'دریافت شد' : '已获取'} ' + allItems.length + ' ${isFarsi ? 'IP' : '个IP'}', 'success');
+                            } else {
+                                showStatus('${isFarsi ? 'داده‌ای یافت نشد' : '未获取到数据'}', 'error');
+                            }
+                        } catch (err) {
+                            showStatus('${isFarsi ? 'خطا در دریافت' : '获取失败'}: ' + err.message, 'error');
+                        } finally {
+                            fetchIPBtn.disabled = false;
+                            fetchIPBtn.textContent = '⬇ ${isFarsi ? 'دریافت IP' : '获取IP'}';
+                        }
+                    });
+                }
+
+                if (startTestBtn) {
+                    startTestBtn.addEventListener('click', async function() {
+                        const inputField = document.getElementById('latencyTestInput');
+                        const portField = document.getElementById('latencyTestPort');
+                        const threadsField = document.getElementById('testThreads');
+                        const inputValue = inputField.value.trim();
+                        const defaultPort = portField.value || '443';
+                        const threads = parseInt(threadsField.value) || 5;
+
+                        if (!inputValue) {
+                            showStatus('${isFarsi ? 'لطفا IP یا دامنه وارد کنید' : '请输入IP或域名'}', 'error');
+                            return;
+                        }
+
+                        const targets = inputValue.split(',').map(t => t.trim()).filter(t => t);
+                        if (targets.length === 0) return;
+
+                        startTestBtn.style.display = 'none';
+                        stopTestBtn.style.display = 'inline-block';
+                        testStatus.style.display = 'block';
+                        testResultsDiv.style.display = 'block';
+                        resultsList.innerHTML = '';
+                        testResults = [];
+                        if (cityFilterContainer) {
+                            cityFilterContainer.style.display = 'none';
+                        }
+
+                        testAbortController = new AbortController();
+
+                        let completed = 0;
+                        const total = targets.length;
+
+                        function parseTarget(target) {
+                            let host = target;
+                            let port = defaultPort;
+                            let nodeName = '';
+
+                            if (target.includes('#')) {
+                                const parts = target.split('#');
+                                nodeName = parts[1] || '';
+                                host = parts[0];
+                            }
+
+                            if (host.includes(':') && !host.startsWith('[')) {
+                                const lastColon = host.lastIndexOf(':');
+                                const possiblePort = host.substring(lastColon + 1);
+                                if (/^[0-9]+$/.test(possiblePort)) {
+                                    port = possiblePort;
+                                    host = host.substring(0, lastColon);
+                                }
+                            } else if (host.includes(']:')) {
+                                const parts = host.split(']:');
+                                host = parts[0] + ']';
+                                port = parts[1];
+                            }
+                            return { host, port, nodeName };
+                        }
+
+                        function renderResult(result, index, shouldShow = true) {
+                            // 只展示在线优选成功的结果，失败/超时的不再显示
+                            if (!result.success) {
+                                return null;
+                            }
+
+                            const resultItem = document.createElement('div');
+                            resultItem.style.cssText = 'display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #003300; gap: 10px;';
+                            resultItem.dataset.index = index;
+                            resultItem.dataset.colo = result.colo || '';
+                            if (!shouldShow) {
+                                resultItem.style.display = 'none';
+                            }
+
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.checked = true;
+                            checkbox.disabled = false;
+                            checkbox.dataset.index = index;
+                            checkbox.style.cssText = 'width: 18px; height: 18px; cursor: pointer;';
+
+                            const info = document.createElement('div');
+                            info.style.cssText = 'flex: 1; font-family: monospace; font-size: 13px;';
+
+                            const coloName = result.colo ? getColoName(result.colo) : '';
+                            const coloDisplay = coloName ? ' <span style="color: #00aaff;">[' + coloName + ']</span>' : '';
+                            info.innerHTML = '<span style="color: #00f0ff;">' + result.host + ':' + result.port + '</span>' + coloDisplay + ' <span style="color: #ffff00;">' + result.latency + 'ms</span>';
+
+                            resultItem.appendChild(checkbox);
+                            resultItem.appendChild(info);
+                            resultsList.appendChild(resultItem);
+                            return resultItem;
+                        }
+
+                        async function testOne(target) {
+                            if (testAbortController.signal.aborted) return null;
+                            const { host, port, nodeName } = parseTarget(target);
+                            const result = await testLatency(host, port, testAbortController.signal);
+                            result.host = host;
+                            result.port = port;
+                            result.nodeName = (result.success && result.colo) ? (nodeName || ('CF-' + result.colo)) : (nodeName || host);
+                            return result;
+                        }
+
+                        for (let i = 0; i < total; i += threads) {
+                            if (testAbortController.signal.aborted) break;
+                            
+                            const batch = targets.slice(i, Math.min(i + threads, total));
+                            testStatus.textContent = '${isFarsi ? 'در حال تست' : '测试中'}: ' + (i + 1) + '-' + Math.min(i + threads, total) + '/' + total + ' (${isFarsi ? 'رشته‌ها' : '线程'}: ' + threads + ')';
+
+                            const results = await Promise.all(batch.map(t => testOne(t)));
+
+                            for (const result of results) {
+                                if (result) {
+                                    const idx = testResults.length;
+                                    testResults.push(result);
+                                    renderResult(result, idx);
+                                    completed++;
+                                }
+                            }
+                        }
+
+                        testStatus.textContent = '${isFarsi ? 'تست کامل شد' : '测试完成'}: ' + completed + '/' + total;
+                        startTestBtn.style.display = 'inline-block';
+                        stopTestBtn.style.display = 'none';
+
+                        // 更新城市选择器
+                        updateCityFilter();
+                    });
+                }
+
+                if (stopTestBtn) {
+                    stopTestBtn.addEventListener('click', function() {
+                        if (testAbortController) {
+                            testAbortController.abort();
+                        }
+                        startTestBtn.style.display = 'inline-block';
+                        stopTestBtn.style.display = 'none';
+                        testStatus.textContent = '${isFarsi ? 'تست متوقف شد' : '测试已停止'}';
+                    });
+                }
+
+                if (selectAllBtn) {
+                    selectAllBtn.addEventListener('click', function() {
+                        const checkboxes = resultsList.querySelectorAll('input[type="checkbox"]:not(:disabled)');
+                        checkboxes.forEach(cb => cb.checked = true);
+                    });
+                }
+
+                if (deselectAllBtn) {
+                    deselectAllBtn.addEventListener('click', function() {
+                        const checkboxes = resultsList.querySelectorAll('input[type="checkbox"]');
+                        checkboxes.forEach(cb => cb.checked = false);
+                    });
+                }
+
+                // 获取选中项的通用函数
+                function getSelectedItems() {
+                    const checkboxes = resultsList.querySelectorAll('input[type="checkbox"]:checked');
+                    if (checkboxes.length === 0) {
+                        showStatus('${isFarsi ? 'لطفا حداقل یک مورد انتخاب کنید' : '请至少选择一项'}', 'error');
+                        return null;
+                    }
+
+                    const selectedItems = [];
+                    checkboxes.forEach(cb => {
+                        const idx = parseInt(cb.dataset.index);
+                        const result = testResults[idx];
+                        if (result && result.success) {
+                            const coloName = result.colo ? getColoName(result.colo) : result.nodeName;
+                            const itemStr = result.host + ':' + result.port + '#' + coloName;
+                            selectedItems.push(itemStr);
+                        }
+                    });
+
+                    return selectedItems;
+                }
+
+                // 覆盖添加
+                if (overwriteSelectedBtn) {
+                    overwriteSelectedBtn.addEventListener('click', async function() {
+                        const selectedItems = getSelectedItems();
+                        if (!selectedItems || selectedItems.length === 0) return;
+
+                        const yxInput = document.getElementById('yx');
+                        const newValue = selectedItems.join(',');
+                        yxInput.value = newValue;
+
+                        overwriteSelectedBtn.disabled = true;
+                        appendSelectedBtn.disabled = true;
+                        overwriteSelectedBtn.textContent = '${isFarsi ? 'در حال ذخیره...' : '保存中...'}';
+
+                        try {
+                            const configData = {
+                                customIP: document.getElementById('customIP').value,
+                                yx: newValue,
+                                yxURL: document.getElementById('yxURL').value,
+                                s: document.getElementById('socksConfig').value
+                            };
+                            await saveConfig(configData);
+                            showStatus('${isFarsi ? 'موفقیت‌آمیز بود' : '已覆盖'} ' + selectedItems.length + ' ${isFarsi ? 'مورد و ذخیره شد' : '项并已保存'}', 'success');
+                        } catch (err) {
+                            showStatus('${isFarsi ? 'خطا در ذخیره' : '保存失败'}: ' + err.message, 'error');
+                        } finally {
+                            overwriteSelectedBtn.disabled = false;
+                            appendSelectedBtn.disabled = false;
+                            overwriteSelectedBtn.textContent = '${isFarsi ? '覆盖添加' : '覆盖添加'}';
+                        }
+                    });
+                }
+
+                // 追加添加
+                if (appendSelectedBtn) {
+                    appendSelectedBtn.addEventListener('click', async function() {
+                        const selectedItems = getSelectedItems();
+                        if (!selectedItems || selectedItems.length === 0) return;
+
+                        const yxInput = document.getElementById('yx');
+                        const currentValue = yxInput.value.trim();
+                        const newItems = selectedItems.join(',');
+                        const newValue = currentValue ? (currentValue + ',' + newItems) : newItems;
+                        yxInput.value = newValue;
+
+                        overwriteSelectedBtn.disabled = true;
+                        appendSelectedBtn.disabled = true;
+                        appendSelectedBtn.textContent = '${isFarsi ? 'در حال ذخیره...' : '保存中...'}';
+
+                        try {
+                            const configData = {
+                                customIP: document.getElementById('customIP').value,
+                                yx: newValue,
+                                yxURL: document.getElementById('yxURL').value,
+                                s: document.getElementById('socksConfig').value
+                            };
+                            await saveConfig(configData);
+                            showStatus('${isFarsi ? 'موفقیت‌آمیز بود' : '已追加'} ' + selectedItems.length + ' ${isFarsi ? 'مورد و ذخیره شد' : '项并已保存'}', 'success');
+                        } catch (err) {
+                            showStatus('${isFarsi ? 'خطا در ذخیره' : '保存失败'}: ' + err.message, 'error');
+                        } finally {
+                            overwriteSelectedBtn.disabled = false;
+                            appendSelectedBtn.disabled = false;
+                            appendSelectedBtn.textContent = '${isFarsi ? '追加添加' : '追加添加'}';
+                        }
+                    });
+                }
+
+                function ipToHex(ip) {
+                    const parts = ip.split('.');
+                    if (parts.length !== 4) return null;
+                    let hex = '';
+                    for (let i = 0; i < 4; i++) {
+                        const num = parseInt(parts[i]);
+                        if (isNaN(num) || num < 0 || num > 255) return null;
+                        hex += num.toString(16).padStart(2, '0');
+                    }
+                    return hex;
+                }
+
+                const coloMap = {
+                    'SJC': '🇺🇸 圣何塞', 'LAX': '🇺🇸 洛杉矶', 'SEA': '🇺🇸 西雅图', 'SFO': '🇺🇸 旧金山', 'DFW': '🇺🇸 达拉斯',
+                    'ORD': '🇺🇸 芝加哥', 'IAD': '🇺🇸 华盛顿', 'ATL': '🇺🇸 亚特兰大', 'MIA': '🇺🇸 迈阿密', 'DEN': '🇺🇸 丹佛',
+                    'PHX': '🇺🇸 凤凰城', 'BOS': '🇺🇸 波士顿', 'EWR': '🇺🇸 纽瓦克', 'JFK': '🇺🇸 纽约', 'LAS': '🇺🇸 拉斯维加斯',
+                    'MSP': '🇺🇸 明尼阿波利斯', 'DTW': '🇺🇸 底特律', 'PHL': '🇺🇸 费城', 'CLT': '🇺🇸 夏洛特', 'SLC': '🇺🇸 盐湖城',
+                    'PDX': '🇺🇸 波特兰', 'SAN': '🇺🇸 圣地亚哥', 'TPA': '🇺🇸 坦帕', 'IAH': '🇺🇸 休斯顿', 'MCO': '🇺🇸 奥兰多',
+                    'AUS': '🇺🇸 奥斯汀', 'BNA': '🇺🇸 纳什维尔', 'RDU': '🇺🇸 罗利', 'IND': '🇺🇸 印第安纳波利斯', 'CMH': '🇺🇸 哥伦布',
+                    'MCI': '🇺🇸 堪萨斯城', 'OMA': '🇺🇸 奥马哈', 'ABQ': '🇺🇸 阿尔伯克基', 'OKC': '🇺🇸 俄克拉荷马城', 'MEM': '🇺🇸 孟菲斯',
+                    'JAX': '🇺🇸 杰克逊维尔', 'RIC': '🇺🇸 里士满', 'BUF': '🇺🇸 布法罗', 'PIT': '🇺🇸 匹兹堡', 'CLE': '🇺🇸 克利夫兰',
+                    'CVG': '🇺🇸 辛辛那提', 'MKE': '🇺🇸 密尔沃基', 'STL': '🇺🇸 圣路易斯', 'SAT': '🇺🇸 圣安东尼奥', 'HNL': '🇺🇸 檀香山',
+                    'ANC': '🇺🇸 安克雷奇', 'SMF': '🇺🇸 萨克拉门托', 'ONT': '🇺🇸 安大略', 'OAK': '🇺🇸 奥克兰',
+                    'HKG': '🇭🇰 香港', 'TPE': '🇹🇼 台北', 'TSA': '🇹🇼 台北松山', 'KHH': '🇹🇼 高雄',
+                    'NRT': '🇯🇵 东京成田', 'HND': '🇯🇵 东京羽田', 'KIX': '🇯🇵 大阪关西', 'ITM': '🇯🇵 大阪伊丹', 'NGO': '🇯🇵 名古屋',
+                    'FUK': '🇯🇵 福冈', 'CTS': '🇯🇵 札幌', 'OKA': '🇯🇵 冲绳',
+                    'ICN': '🇰🇷 首尔仁川', 'GMP': '🇰🇷 首尔金浦', 'PUS': '🇰🇷 釜山',
+                    'SIN': '🇸🇬 新加坡', 'BKK': '🇹🇭 曼谷', 'DMK': '🇹🇭 曼谷廊曼', 'KUL': '🇲🇾 吉隆坡', 'CGK': '🇮🇩 雅加达',
+                    'MNL': '🇵🇭 马尼拉', 'CEB': '🇵🇭 宿务', 'HAN': '🇻🇳 河内', 'SGN': '🇻🇳 胡志明', 'DAD': '🇻🇳 岘港',
+                    'RGN': '🇲🇲 仰光', 'PNH': '🇰🇭 金边', 'REP': '🇰🇭 暹粒', 'VTE': '🇱🇦 万象',
+                    'BOM': '🇮🇳 孟买', 'DEL': '🇮🇳 新德里', 'MAA': '🇮🇳 金奈', 'BLR': '🇮🇳 班加罗尔', 'CCU': '🇮🇳 加尔各答',
+                    'HYD': '🇮🇳 海得拉巴', 'AMD': '🇮🇳 艾哈迈达巴德', 'COK': '🇮🇳 科钦', 'PNQ': '🇮🇳 浦那', 'GOI': '🇮🇳 果阿',
+                    'CMB': '🇱🇰 科伦坡', 'DAC': '🇧🇩 达卡', 'KTM': '🇳🇵 加德满都', 'ISB': '🇵🇰 伊斯兰堡', 'KHI': '🇵🇰 卡拉奇', 'LHE': '🇵🇰 拉合尔',
+                    'LHR': '🇬🇧 伦敦希思罗', 'LGW': '🇬🇧 伦敦盖特威克', 'STN': '🇬🇧 伦敦斯坦斯特德', 'LTN': '🇬🇧 伦敦卢顿', 'MAN': '🇬🇧 曼彻斯特', 'EDI': '🇬🇧 爱丁堡', 'BHX': '🇬🇧 伯明翰',
+                    'CDG': '🇫🇷 巴黎戴高乐', 'ORY': '🇫🇷 巴黎奥利', 'MRS': '🇫🇷 马赛', 'LYS': '🇫🇷 里昂', 'NCE': '🇫🇷 尼斯',
+                    'FRA': '🇩🇪 法兰克福', 'MUC': '🇩🇪 慕尼黑', 'TXL': '🇩🇪 柏林', 'BER': '🇩🇪 柏林勃兰登堡', 'HAM': '🇩🇪 汉堡', 'DUS': '🇩🇪 杜塞尔多夫', 'CGN': '🇩🇪 科隆', 'STR': '🇩🇪 斯图加特',
+                    'AMS': '🇳🇱 阿姆斯特丹', 'BRU': '🇧🇪 布鲁塞尔', 'LUX': '🇱🇺 卢森堡',
+                    'ZRH': '🇨🇭 苏黎世', 'GVA': '🇨🇭 日内瓦', 'BSL': '🇨🇭 巴塞尔',
+                    'VIE': '🇦🇹 维也纳', 'PRG': '🇨🇿 布拉格', 'BUD': '🇭🇺 布达佩斯', 'WAW': '🇵🇱 华沙', 'KRK': '🇵🇱 克拉科夫',
+                    'MXP': '🇮🇹 米兰马尔彭萨', 'LIN': '🇮🇹 米兰利纳特', 'FCO': '🇮🇹 罗马', 'VCE': '🇮🇹 威尼斯', 'NAP': '🇮🇹 那不勒斯', 'FLR': '🇮🇹 佛罗伦萨', 'BGY': '🇮🇹 贝加莫',
+                    'MAD': '🇪🇸 马德里', 'BCN': '🇪🇸 巴塞罗那', 'PMI': '🇪🇸 帕尔马', 'AGP': '🇪🇸 马拉加', 'VLC': '🇪🇸 瓦伦西亚', 'SVQ': '🇪🇸 塞维利亚', 'BIO': '🇪🇸 毕尔巴鄂',
+                    'LIS': '🇵🇹 里斯本', 'OPO': '🇵🇹 波尔图', 'FAO': '🇵🇹 法鲁',
+                    'DUB': '🇮🇪 都柏林', 'CPH': '🇩🇰 哥本哈根', 'ARN': '🇸🇪 斯德哥尔摩', 'GOT': '🇸🇪 哥德堡',
+                    'OSL': '🇳🇴 奥斯陆', 'BGO': '🇳🇴 卑尔根', 'HEL': '🇫🇮 赫尔辛基', 'RIX': '🇱🇻 里加', 'TLL': '🇪🇪 塔林', 'VNO': '🇱🇹 维尔纽斯',
+                    'ATH': '🇬🇷 雅典', 'SKG': '🇬🇷 塞萨洛尼基', 'SOF': '🇧🇬 索非亚', 'OTP': '🇷🇴 布加勒斯特', 'BEG': '🇷🇸 贝尔格莱德', 'ZAG': '🇭🇷 萨格勒布', 'LJU': '🇸🇮 卢布尔雅那',
+                    'KBP': '🇺🇦 基辅', 'IEV': '🇺🇦 基辅茹良尼', 'ODS': '🇺🇦 敖德萨',
+                    'SVO': '🇷🇺 莫斯科谢列梅捷沃', 'DME': '🇷🇺 莫斯科多莫杰多沃', 'VKO': '🇷🇺 莫斯科伏努科沃', 'LED': '🇷🇺 圣彼得堡',
+                    'IST': '🇹🇷 伊斯坦布尔', 'SAW': '🇹🇷 伊斯坦布尔萨比哈', 'ESB': '🇹🇷 安卡拉', 'AYT': '🇹🇷 安塔利亚', 'ADB': '🇹🇷 伊兹密尔',
+                    'TLV': '🇮🇱 特拉维夫', 'AMM': '🇯🇴 安曼', 'BEY': '🇱🇧 贝鲁特', 'BAH': '🇧🇭 巴林', 'KWI': '🇰🇼 科威特',
+                    'DXB': '🇦🇪 迪拜', 'AUH': '🇦🇪 阿布扎比', 'SHJ': '🇦🇪 沙迦', 'DOH': '🇶🇦 多哈', 'MCT': '🇴🇲 马斯喀特',
+                    'RUH': '🇸🇦 利雅得', 'JED': '🇸🇦 吉达', 'DMM': '🇸🇦 达曼',
+                    'CAI': '🇪🇬 开罗', 'HBE': '🇪🇬 亚历山大', 'SSH': '🇪🇬 沙姆沙伊赫',
+                    'CMN': '🇲🇦 卡萨布兰卡', 'RAK': '🇲🇦 马拉喀什', 'TUN': '🇹🇳 突尼斯', 'ALG': '🇩🇿 阿尔及尔',
+                    'LOS': '🇳🇬 拉各斯', 'ABV': '🇳🇬 阿布贾', 'ACC': '🇬🇭 阿克拉', 'NBO': '🇰🇪 内罗毕', 'MBA': '🇰🇪 蒙巴萨', 'ADD': '🇪🇹 亚的斯亚贝巴', 'DAR': '🇹🇿 达累斯萨拉姆',
+                    'JNB': '🇿🇦 约翰内斯堡', 'CPT': '🇿🇦 开普敦', 'DUR': '🇿🇦 德班', 'HRE': '🇿🇼 哈拉雷', 'LUN': '🇿🇲 卢萨卡',
+                    'MRU': '🇲🇺 毛里求斯', 'SEZ': '🇸🇨 塞舌尔',
+                    'SYD': '🇦🇺 悉尼', 'MEL': '🇦🇺 墨尔本', 'BNE': '🇦🇺 布里斯班', 'PER': '🇦🇺 珀斯', 'ADL': '🇦🇺 阿德莱德', 'CBR': '🇦🇺 堪培拉', 'OOL': '🇦🇺 黄金海岸', 'CNS': '🇦🇺 凯恩斯',
+                    'AKL': '🇳🇿 奥克兰', 'WLG': '🇳🇿 惠灵顿', 'CHC': '🇳🇿 基督城', 'ZQN': '🇳🇿 皇后镇',
+                    'NAN': '🇫🇯 楠迪', 'PPT': '🇵🇫 帕皮提', 'GUM': '🇬🇺 关岛',
+                    'GRU': '🇧🇷 圣保罗瓜鲁柳斯', 'CGH': '🇧🇷 圣保罗孔戈尼亚斯', 'GIG': '🇧🇷 里约热内卢', 'BSB': '🇧🇷 巴西利亚', 'CNF': '🇧🇷 贝洛奥里藏特', 'POA': '🇧🇷 阿雷格里港', 'CWB': '🇧🇷 库里蒂巴', 'FOR': '🇧🇷 福塔莱萨', 'REC': '🇧🇷 累西腓', 'SSA': '🇧🇷 萨尔瓦多',
+                    'EZE': '🇦🇷 布宜诺斯艾利斯', 'AEP': '🇦🇷 布宜诺斯艾利斯城', 'COR': '🇦🇷 科尔多瓦', 'MDZ': '🇦🇷 门多萨',
+                    'SCL': '🇨🇱 圣地亚哥', 'LIM': '🇵🇪 利马', 'BOG': '🇨🇴 波哥大', 'MDE': '🇨🇴 麦德林', 'CLO': '🇨🇴 卡利',
+                    'UIO': '🇪🇨 基多', 'GYE': '🇪🇨 瓜亚基尔', 'CCS': '🇻🇪 加拉加斯', 'MVD': '🇺🇾 蒙得维的亚', 'ASU': '🇵🇾 亚松森',
+                    'PTY': '🇵🇦 巴拿马城', 'SJO': '🇨🇷 圣何塞', 'GUA': '🇬🇹 危地马拉城', 'SAL': '🇸🇻 圣萨尔瓦多', 'TGU': '🇭🇳 特古西加尔巴', 'MGA': '🇳🇮 马那瓜', 'BZE': '🇧🇿 伯利兹城',
+                    'MEX': '🇲🇽 墨西哥城', 'GDL': '🇲🇽 瓜达拉哈拉', 'MTY': '🇲🇽 蒙特雷', 'CUN': '🇲🇽 坎昆', 'TIJ': '🇲🇽 蒂华纳', 'SJD': '🇲🇽 圣何塞德尔卡沃',
+                    'YYZ': '🇨🇦 多伦多', 'YVR': '🇨🇦 温哥华', 'YUL': '🇨🇦 蒙特利尔', 'YYC': '🇨🇦 卡尔加里', 'YEG': '🇨🇦 埃德蒙顿', 'YOW': '🇨🇦 渥太华', 'YWG': '🇨🇦 温尼伯', 'YHZ': '🇨🇦 哈利法克斯',
+                    'HAV': '🇨🇺 哈瓦那', 'SJU': '🇵🇷 圣胡安', 'SDQ': '🇩🇴 圣多明各', 'PAP': '🇭🇹 太子港', 'KIN': '🇯🇲 金斯顿', 'NAS': '🇧🇸 拿骚', 'MBJ': '🇯🇲 蒙特哥贝'
+                };
+
+                function getColoName(colo) {
+                    return coloMap[colo] || colo;
+                }
+
+                // 城市筛选相关函数
+                const cityFilterContainer = document.getElementById('cityFilterContainer');
+                const cityCheckboxesContainer = document.getElementById('cityCheckboxesContainer');
+
+                function updateCityFilter() {
+                    if (!cityFilterContainer || !cityCheckboxesContainer) return;
+
+                    // 从测试结果中提取所有可用的城市
+                    const cityMap = new Map();
+                    testResults.forEach((result, index) => {
+                        if (result.success && result.colo) {
+                            const colo = result.colo;
+                            if (!cityMap.has(colo)) {
+                                cityMap.set(colo, {
+                                    colo: colo,
+                                    name: getColoName(colo),
+                                    count: 0
+                                });
+                            }
+                            cityMap.get(colo).count++;
+                        }
+                    });
+
+                    if (cityMap.size === 0) {
+                        cityFilterContainer.style.display = 'none';
+                        return;
+                    }
+
+                    cityFilterContainer.style.display = 'block';
+                    cityCheckboxesContainer.innerHTML = '';
+
+                    // 按城市名称排序
+                    const cities = Array.from(cityMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+                    cities.forEach(city => {
+                        const label = document.createElement('label');
+                        label.style.cssText = 'display: inline-flex; align-items: center; cursor: pointer; color: #00f0ff; font-size: 0.85rem; padding: 4px 8px; background: rgba(20, 5, 50, 0.4); border: 1px solid #7aa9c4; border-radius: 4px;';
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.value = city.colo;
+                        checkbox.checked = true;
+                        checkbox.dataset.colo = city.colo;
+                        checkbox.style.cssText = 'margin-right: 6px; width: 16px; height: 16px; cursor: pointer;';
+
+                        const span = document.createElement('span');
+                        span.textContent = city.name + ' (' + city.count + ')';
+                        
+                        label.appendChild(checkbox);
+                        label.appendChild(span);
+                        cityCheckboxesContainer.appendChild(label);
+
+                        checkbox.addEventListener('change', filterResultsByCity);
+                    });
+                    
+                    // 监听筛选模式变化
+                    const filterModeRadios = document.querySelectorAll('input[name="cityFilterMode"]');
+                    filterModeRadios.forEach(radio => {
+                        radio.addEventListener('change', function() {
+                            if (this.value === 'all') {
+                                // 切换到"全部城市"模式时，自动选中所有城市复选框
+                                const cityCheckboxes = cityCheckboxesContainer.querySelectorAll('input[type="checkbox"]');
+                                cityCheckboxes.forEach(cb => {
+                                    cb.checked = true;
+                                    cb.disabled = false;
+                                });
+                            }
+                            filterResultsByCity();
+                        });
+                    });
+                }
+
+                function filterResultsByCity() {
+                    if (!resultsList || !cityCheckboxesContainer) return;
+
+                    const filterMode = document.querySelector('input[name="cityFilterMode"]:checked')?.value || 'all';
+                    const resultItems = resultsList.querySelectorAll('[data-index]');
+                    const cityCheckboxes = cityCheckboxesContainer.querySelectorAll('input[type="checkbox"]');
+
+                    if (filterMode === 'fastest10') {
+                        // 只选择最快的10个
+                        const sortedResults = testResults
+                            .map((result, index) => ({ result, index }))
+                            .filter(item => item.result.success)
+                            .sort((a, b) => a.result.latency - b.result.latency)
+                            .slice(0, 10);
+
+                        const fastestIndices = new Set(sortedResults.map(item => item.index));
+
+                        resultItems.forEach(item => {
+                            const index = parseInt(item.dataset.index);
+                            const checkbox = item.querySelector('input[type="checkbox"]');
+                            if (fastestIndices.has(index)) {
+                                item.style.display = 'flex';
+                                if (checkbox) checkbox.checked = true;
+                            } else {
+                                item.style.display = 'none';
+                                if (checkbox) checkbox.checked = false;
+                            }
+                        });
+
+                        // 禁用城市复选框
+                        cityCheckboxes.forEach(cb => cb.disabled = true);
+                    } else {
+                        // 根据选中的城市筛选
+                        const selectedCities = new Set();
+                        cityCheckboxes.forEach(cb => {
+                            if (cb.checked) {
+                                selectedCities.add(cb.value);
+                            }
+                        });
+
+                        // 如果所有城市都被选中（或没有选中任何城市），显示所有结果
+                        const allChecked = cityCheckboxes.length > 0 && selectedCities.size === cityCheckboxes.length;
+                        const noneChecked = selectedCities.size === 0;
+
+                        resultItems.forEach(item => {
+                            const colo = item.dataset.colo || '';
+                            const checkbox = item.querySelector('input[type="checkbox"]');
+                            if (allChecked || noneChecked || selectedCities.has(colo)) {
+                                item.style.display = 'flex';
+                                // 同步更新结果项复选框的选中状态
+                                if (checkbox) {
+                                    if (allChecked) {
+                                        // 所有城市都选中时，所有结果项复选框都选中
+                                        checkbox.checked = true;
+                                    } else if (noneChecked) {
+                                        // 没有选中任何城市时，所有结果项复选框都取消选中
+                                        checkbox.checked = false;
+                                    } else {
+                                        // 根据城市选择状态同步复选框
+                                        checkbox.checked = selectedCities.has(colo);
+                                    }
+                                }
+                            } else {
+                                item.style.display = 'none';
+                                // 取消选中隐藏的结果项复选框
+                                if (checkbox) {
+                                    checkbox.checked = false;
+                                }
+                            }
+                        });
+
+                        // 启用城市复选框
+                        cityCheckboxes.forEach(cb => cb.disabled = false);
+                    }
+                }
+
+                async function testLatency(host, port, signal) {
+                    const timeout = 8000;
+                    let colo = '';
+                    let testUrl = '';
+
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+                        if (signal) {
+                            signal.addEventListener('abort', () => controller.abort());
+                        }
+
+                        const cleanHost = host.replace(/^\\[|\\]$/g, '');
+                        const hexIP = ipToHex(cleanHost);
+                        const testDomain = hexIP ? (hexIP + '.nip.lfree.org') : (cleanHost + '.nip.lfree.org');
+                        testUrl = 'https://' + testDomain + ':' + port + '/';
+
+                        console.log('[LatencyTest] Testing:', testUrl, 'Original:', host + ':' + port, 'HexIP:', hexIP);
+
+                        const firstStart = Date.now();
+                        const response1 = await fetch(testUrl, { 
+                            signal: controller.signal
+                        });
+                        const firstTime = Date.now() - firstStart;
+
+                        if (!response1.ok) {
+                            clearTimeout(timeoutId);
+                            return { success: false, latency: firstTime, error: 'HTTP ' + response1.status + ' ' + response1.statusText, colo: '', testUrl: testUrl };
+                        }
+
+                        try {
+                            const text = await response1.text();
+                            console.log('[LatencyTest] Response body:', text.substring(0, 200));
+                            const data = JSON.parse(text);
+                            if (data.colo) {
+                                colo = data.colo;
+                            }
+                        } catch (e) {
+                            console.log('[LatencyTest] Parse error:', e.message);
+                        }
+
+                        const secondStart = Date.now();
+                        const response2 = await fetch(testUrl, { 
+                            signal: controller.signal
+                        });
+                        await response2.text();
+                        const latency = Date.now() - secondStart;
+
+                        clearTimeout(timeoutId);
+
+                        console.log('[LatencyTest] First:', firstTime + 'ms (DNS+TLS+RTT)', 'Second:', latency + 'ms (RTT only)');
+
+                        return { success: true, latency: latency, colo: colo, testUrl: testUrl };
+                    } catch (error) {
+                        const errorMsg = error.name === 'AbortError' ? '${isFarsi ? 'زمان تمام شد' : '超时'}' : error.message;
+                        console.log('[LatencyTest] Error:', errorMsg, 'URL:', testUrl);
+                        return { success: false, latency: -1, error: errorMsg, colo: '', testUrl: testUrl };
+                    }
+                }
+            });
+        </script>
+    </body>
+    </html>
+        
+`;

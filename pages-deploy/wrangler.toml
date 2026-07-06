@@ -1,11 +1,7 @@
 name = "cfnew-proxy"
-main = "index.js"
 compatibility_date = "2026-01-20"
+pages_build_output_dir = "."
 
 [[kv_namespaces]]
-binding = "C"
+binding = "CFNEW_KV"
 id = "216b2c6261294fc2ab8f2bb580f85c31"
-
-[[routes]]
-pattern = "proxy.1111009.xyz"
-custom_domain = true

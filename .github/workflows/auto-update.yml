@@ -1,0 +1,94 @@
+name: 自动同步上游 + 部署
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  update-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install asar
+        run: npm install -g @electron/asar
+
+      - name: Setup wrangler auth
+        run: |
+          mkdir -p ~/.wrangler/config
+          cat > ~/.wrangler/config/default.toml << 'EOF'
+          oauth_token = "${{ secrets.CF_OAUTH_TOKEN }}"
+          expiration_time = "${{ secrets.CF_OAUTH_EXPIRY }}"
+          refresh_token = "${{ secrets.CF_OAUTH_REFRESH }}"
+          scopes = [ "account:read", "user:read", "workers:write", "workers_kv:write", "workers_routes:write", "workers_scripts:write", "workers_tail:read", "d1:write", "pages:write", "zone:read", "ssl_certs:write", "ai:write", "queues:write", "secrets_store:write", "containers:write", "offline_access" ]
+          EOF
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/byJoey/cfnew.git
+          git fetch upstream
+
+      - name: Try merging upstream
+        id: merge
+        continue-on-error: true
+        run: |
+          git merge upstream/main --no-edit 2>&1
+          echo "status=ok" >> $GITHUB_OUTPUT
+
+      - name: Handle merge conflict
+        if: steps.merge.outcome == 'failure'
+        run: |
+          echo "❌ 上游合并冲突，已创建 Issue" >> $GITHUB_STEP_SUMMARY
+          gh issue create \
+            --title "⚠️ 上游合并冲突 $(date +%Y-%m-%d)" \
+            --body "自动同步上游 byJoey/cfnew 时发生合并冲突，请手动处理。
+
+          \`\`\`bash
+          git remote add upstream https://github.com/byJoey/cfnew.git
+          git fetch upstream
+          git merge upstream/main
+          # 解决冲突后:
+          bash scripts/update-from-upstream.sh
+          wrangler deploy
+          \`\`\`" \
+            --label "auto-update"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore custom frontend
+        if: steps.merge.outcome == 'success'
+        run: |
+          if [ -f scripts/update-from-upstream.sh ]; then
+            bash scripts/update-from-upstream.sh
+          else
+            echo "⚠️ update-from-upstream.sh 不存在，跳过前端恢复"
+          fi
+
+      - name: Deploy
+        if: steps.merge.outcome == 'success'
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_ACCOUNT_ID: 150cd55b3bd2074cf53e685d0dc9196e
+          NO_D1_WARNING: true
+
+      - name: Summary
+        if: steps.merge.outcome == 'success'
+        run: |
+          echo "## ✅ 自动同步完成" >> $GITHUB_STEP_SUMMARY
+          echo "- 上游: byJoey/cfnew" >> $GITHUB_STEP_SUMMARY
+          echo "- 前端: 你的自定义版本（已恢复）" >> $GITHUB_STEP_SUMMARY
+          echo "- 部署: 已推送到 Cloudflare Workers" >> $GITHUB_STEP_SUMMARY
